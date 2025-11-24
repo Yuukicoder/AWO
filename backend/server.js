@@ -1,8 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const connectDB = require('./connect/db.js');
 const app = express();
+require('dotenv').config();
 app.use(cors())
 app.get('/', (req, res)=>{
     res.json({message: "AWO Hi there!"});
 })
-app.listen(3000, ()=>{console.log("server chay o localhost 3000");})
+const PORT = process.env.PORT || 3002;
+server = app.listen(PORT, ()=>{
+    console.log(`Server running on port ${3000}`);
+    connectDB();
+})
