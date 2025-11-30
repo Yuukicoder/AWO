@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import User from '../models/users.model.js';
 import AuthRepository from '../repository/Auth.repository.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/jwt.js';
 
 const authRepo = new AuthRepository();
 
@@ -35,3 +37,31 @@ export const login = async(email, password) => {
     }
     return generateToken(user);
 };
+// register service
+export const register = async({name,email, password, role}) =>{
+    if(!name || !email || !password){
+        throw new Error("Missing required field!")
+    }
+
+    // Hash password
+    const hashed = await bcrypt.hash(password,12);
+    password = hashed;
+
+    const user = await authRepo.register({
+        name, 
+        email,
+        password,
+        role: role || "member"
+    });
+
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    //  Loại bỏ password trc khi trả về client
+    const {password: _, ...userWithoutPassword} = user.toObject();
+   
+    return {
+        user: userWithoutPassword, 
+        accessToken, 
+        refreshToken
+    }
+}
