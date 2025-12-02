@@ -35,7 +35,20 @@ export const login = async(email, password) => {
     if(!isMatch){
         throw new Error('Invalid password');
     }
-    return generateToken(user);
+    const tokens = generateToken(user);
+    
+    // Cập nhật refresh token vào database
+    user.refreshToken = tokens.refreshToken;
+    await user.save();
+    
+    // Loại bỏ password trước khi trả về
+    const { password: _, refreshToken: __, ...userWithoutSensitiveData } = user.toObject();
+    
+    return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        user: userWithoutSensitiveData
+    };
 };
 // register service
 export const register = async({name,email, password, role}) =>{
@@ -56,12 +69,50 @@ export const register = async({name,email, password, role}) =>{
 
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
-    //  Loại bỏ password trc khi trả về client
-    const {password: _, ...userWithoutPassword} = user.toObject();
+    
+    // Cập nhật refresh token vào database
+    user.refreshToken = refreshToken;
+    await user.save();
+    
+    //  Loại bỏ password và refreshToken trước khi trả về client
+    const {password: _, refreshToken: __, ...userWithoutPassword} = user.toObject();
    
     return {
         user: userWithoutPassword, 
         accessToken, 
         refreshToken
+    };
+};
+
+// Refresh token service
+export const refreshTokenService = async (refreshToken) => {
+    try {
+        // Verify refresh token
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        
+        // Tìm user và kiểm tra refresh token có khớp không
+        const user = await User.findOne({ 
+            _id: decoded.id, 
+            refreshToken: refreshToken,
+            isDeleted: false 
+        });
+        
+        if (!user) {
+            throw new Error('Invalid refresh token');
+        }
+        
+        // Generate tokens mới
+        const tokens = generateToken(user);
+        
+        // Cập nhật refresh token mới vào database
+        user.refreshToken = tokens.refreshToken;
+        await user.save();
+        
+        return {
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken
+        };
+    } catch (error) {
+        throw new Error('Invalid or expired refresh token');
     }
-}
+};
