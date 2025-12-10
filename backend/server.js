@@ -1,13 +1,17 @@
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import userRoutes from './src/routes/User.routes.js';
-import dotenv from 'dotenv';
+import { connectRedis, disconnectRedis } from './src/config/redis.js';
+import { initSocket } from './src/config/socket.js';
 
 dotenv.config();
 
 const app = express();
+const httpServer = http.createServer(app);
 
 // Middleware
 app.use(cors({
@@ -27,16 +31,42 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', userRoutes);
 
-// Connect DB và start server
+// Connect DB, Redis và start server
 const PORT = process.env.PORT || 3002;
 
-connectDB()
-    .then(() => {
-        app.listen(PORT, () => {
+const startServer = async () => {
+    try {
+        await connectDB();
+        await connectRedis();
+
+        initSocket(httpServer);
+
+        httpServer.listen(PORT, () => {
             console.log(`✅ Server running on port ${PORT}`);
         });
-    })
-    .catch((error) => {
-        console.error('❌ Failed to connect to database:', error);
+    } catch (error) {
+        console.error('❌ Failed to start server:', error);
+        await disconnectRedis().catch(() => {});
         process.exit(1);
+    }
+};
+
+startServer();
+
+const shutdown = (signal) => {
+    console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+
+    httpServer.close((error) => {
+        if (error) {
+            console.error('Error while shutting down HTTP server:', error);
+            process.exit(1);
+        }
+
+        disconnectRedis()
+            .catch(() => {})
+            .finally(() => process.exit(0));
     });
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
