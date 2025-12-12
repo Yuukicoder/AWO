@@ -32,6 +32,12 @@ const taskSchema = new mongoose.Schema(
       ref: 'User',
       default: null,
     },
+    ticketId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Ticket',
+      default: null,
+      index: true,
+    },
     deadline: {
       type: Date,
       default: null,

@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import userRoutes from './src/routes/User.routes.js';
 import taskRoutes from './src/routes/task.routes.js';
+import ticketRoutes from './src/routes/ticket.routes.js';
 import { connectRedis, disconnectRedis } from './src/config/redis.js';
 import { initSocket } from './src/config/socket.js';
 
@@ -32,6 +33,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', userRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/tickets', ticketRoutes);
 
 // Connect DB, Redis và start server
 const PORT = process.env.PORT || 3002;
