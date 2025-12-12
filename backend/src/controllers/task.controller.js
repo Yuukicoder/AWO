@@ -40,6 +40,7 @@ class TaskController {
         sortBy = 'createdAt',
         sortOrder = 'desc',
         search,
+        isDeleted = isDeleted === undefined ? 'false' : isDeleted,
       } = req.query;
 
       const filters = {};
@@ -97,7 +98,7 @@ class TaskController {
       return res.status(statusCode).json({ message: error.message || 'Failed to update task' });
     }
   }
-
+  // Delete (soft delete) a task
   async deleteTask(req, res) {
     try {
       const { id } = req.params;

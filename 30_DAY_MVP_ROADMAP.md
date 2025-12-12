@@ -504,4 +504,228 @@ After MVP completion, focus on:
 
 ---
 
-**Good luck! 🚀 Let's build an amazing MVP in 30 days!**
+# 📅 15-Day Sprint Plan - Task Assignment for 2 Fullstack Developers
+
+## 🎯 Current Status (December 11, 2025)
+- ✅ Backend: Express setup, MongoDB, Redis, Socket.io, Task CRUD API
+- ✅ Frontend: React app structure, Auth UI, Layout components
+- 🔄 **Target**: Complete MVP in 15 days (December 26, 2025)
+
+---
+
+## 👥 Team Assignment Strategy
+**Dev A & Dev B** = Fullstack developers
+- Each dev owns 1 major feature per day
+- Cross-review code daily
+- Pair programming for complex integrations
+
+---
+
+## 📆 Daily Task Assignment
+
+### **Day 1 (Dec 11) - Assignment & Workload**
+- **Dev A**: Implement workload calculator backend
+  - Add `GET /api/users/:id/workload` endpoint
+  - Calculate task counts and estimated hours per user
+  - Add priority-based weighting system
+- **Dev B**: Build task assignment UI
+  - Create assignment modal component
+  - Add user selection dropdown
+  - Integrate with assignment API
+
+### **Day 2 (Dec 12) - Real-time Events**
+- **Dev A**: Implement Redis pub/sub for task events
+  - Emit `task:created`, `task:updated`, `task:assigned` events
+  - Create event broadcasting service
+  - Test event flow with Redis
+- **Dev B**: Setup WebSocket client integration
+  - Install `socket.io-client`
+  - Create WebSocket hook/service
+  - Connect to backend Socket.io server
+
+### **Day 3 (Dec 13) - Task List & Filtering**
+- **Dev A**: Enhance task API with advanced filtering
+  - Add search by title/description
+  - Implement date range filtering
+  - Add task statistics endpoint
+- **Dev B**: Build comprehensive task list UI
+  - Create filter controls (status, priority, assignee)
+  - Implement search functionality
+  - Add sorting options
+
+### **Day 4 (Dec 14) - Task Details & Forms**
+- **Dev A**: Add task update tracking and validation
+  - Create task history/audit trail
+  - Add field validation middleware
+  - Implement optimistic locking
+- **Dev B**: Create task details and edit forms
+  - Build task detail modal/page
+  - Create task creation/edit forms
+  - Add form validation and date pickers
+
+### **Day 5 (Dec 15) - Real-time UI Updates**
+- **Dev A**: Complete WebSocket event system
+  - Finalize all task-related events
+  - Add user-specific notifications
+  - Test multi-client real-time updates
+- **Dev B**: Implement real-time UI updates
+  - Listen for WebSocket events in task store
+  - Add toast notifications for task updates
+  - Auto-refresh task list on events
+
+### **Day 6 (Dec 16) - User Management**
+- **Dev A**: Extend user API with skills and workload
+  - Add user skills management
+  - Implement capacity tracking
+  - Create team/user listing endpoints
+- **Dev B**: Build user management interface
+  - Create user profile pages
+  - Add skills management UI
+  - Display workload information
+
+### **Day 7 (Dec 17) - AI Triage Foundation**
+- **Dev A**: Setup OpenAI integration
+  - Install OpenAI SDK
+  - Create AI service module
+  - Implement basic email parsing utility
+- **Dev B**: Create AI triage page structure
+  - Build email input form
+  - Add file upload capability
+  - Create loading states and progress indicators
+
+### **Day 8 (Dec 18) - AI Analysis Implementation**
+- **Dev A**: Build AI task analysis engine
+  - Create `POST /api/triage/email` endpoint
+  - Implement AI prompt engineering
+  - Add confidence scoring system
+- **Dev B**: Build AI suggestion display
+  - Create task preview component
+  - Show AI confidence scores
+  - Add editable suggestion fields
+
+### **Day 9 (Dec 19) - AI Draft System**
+- **Dev A**: Implement draft storage and confirmation
+  - Save AI drafts to Redis
+  - Create draft retrieval endpoints
+  - Build draft-to-task conversion
+- **Dev B**: Complete AI confirmation flow
+  - Build draft review interface
+  - Add edit/confirm/reject actions
+  - Integrate with task creation
+
+### **Day 10 (Dec 20) - Dashboard & Analytics**
+- **Dev A**: Create analytics and reporting API
+  - Task completion statistics
+  - User productivity metrics
+  - System health endpoints
+- **Dev B**: Build dashboard interface
+  - Create KPI cards and charts
+  - Add task queue visualization
+  - Build user workload charts
+
+### **Day 11 (Dec 21) - Performance & Optimization**
+- **Dev A**: Optimize backend performance
+  - Add database indexing
+  - Implement caching strategies
+  - Add API rate limiting
+- **Dev B**: Optimize frontend performance
+  - Implement code splitting
+  - Add lazy loading
+  - Optimize bundle size
+
+### **Day 12 (Dec 22) - Security & Validation**
+- **Dev A**: Enhance security measures
+  - Add input sanitization
+  - Implement CORS properly
+  - Add API security headers
+- **Dev B**: Add comprehensive form validation
+  - Client-side validation
+  - Error handling improvements
+  - User feedback enhancements
+
+### **Day 13 (Dec 23) - Integration Testing**
+- **Dev A**: Create backend test suite
+  - Unit tests for services
+  - Integration tests for APIs
+  - WebSocket connection tests
+- **Dev B**: End-to-end testing
+  - User flow testing
+  - Cross-browser testing
+  - Mobile responsiveness
+
+### **Day 14 (Dec 24) - Polish & Bug Fixes**
+- **Dev A**: Backend stability and monitoring
+  - Add logging and error tracking
+  - Performance monitoring
+  - Production configurations
+- **Dev B**: UI polish and accessibility
+  - Design consistency
+  - Accessibility improvements
+  - Loading states and error messages
+
+### **Day 15 (Dec 25) - Final MVP Deployment**
+- **Dev A**: Deployment preparation
+  - Environment configuration
+  - Database seeding
+  - Production deployment
+- **Dev B**: Final testing and documentation
+  - User acceptance testing
+  - Create user documentation
+  - Final demo preparation
+
+---
+
+## 🎯 MVP Completion Criteria
+
+### ✅ Must-Have Features (Day 15)
+1. **Complete task lifecycle** (create → assign → update → complete)
+2. **Real-time updates** across all connected clients
+3. **AI email triage** with manual review flow
+4. **User workload management** with visual indicators
+5. **Role-based access** (admin, manager, member)
+6. **Responsive UI** working on desktop and mobile
+
+### 🔧 Success Metrics
+- All 5 core user flows work end-to-end
+- Real-time events fire within 2 seconds
+- AI triage accuracy > 70% for test emails
+- UI loads in < 3 seconds on standard connection
+- Zero critical security vulnerabilities
+
+---
+
+## 💡 Daily Sync Protocol
+
+### Morning Standup (15 mins)
+- Yesterday's progress review
+- Today's task clarification
+- Blocker identification
+
+### Evening Check-in (10 mins)
+- Demo completed features
+- Code review assignments
+- Next day preparation
+
+### Tools
+- **Communication**: Slack/Discord
+- **Code Review**: GitHub PRs
+- **Task Tracking**: GitHub Issues
+- **Documentation**: Shared Notion/README
+
+---
+
+## 🚨 Risk Mitigation
+
+### High-Risk Items
+1. **AI Integration** - Have fallback manual task creation
+2. **Real-time Features** - Can work without WebSocket initially
+3. **Performance** - Focus on core features first
+
+### Contingency Plans
+- **Behind Schedule**: Skip non-essential UI polish
+- **Technical Blockers**: Pair programming sessions
+- **Integration Issues**: Fallback to mock data temporarily
+
+---
+
+**🎯 Goal: Working MVP by December 25, 2025! Let's ship it! 🚀**
