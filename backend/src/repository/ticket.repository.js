@@ -6,7 +6,7 @@ class TicketRepository {
    */
   async create(data) {
     const ticket = await Ticket.create(data);
-    return ticket.populate('assignedTo assignedBy resolvedBy', 'name email role');
+    return ticket;
   }
 
   /**
@@ -18,7 +18,7 @@ class TicketRepository {
       limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      populate = 'assignedTo assignedBy resolvedBy',
+      populate = null, // Make populate optional
       select = 'name email role',
       lean = true,
       includeTasks = false,
@@ -29,10 +29,14 @@ class TicketRepository {
     const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
     let queryBuilder = Ticket.find(query)
-      .populate(populate, select)
       .sort(sort)
       .skip(skip)
       .limit(limit);
+
+    // Only populate if populate field is provided
+    if (populate) {
+      queryBuilder = queryBuilder.populate(populate, select);
+    }
 
     if (includeTasks) {
       queryBuilder = queryBuilder.populate('tasks', 'title status priority estimatedHours');
@@ -58,14 +62,18 @@ class TicketRepository {
    */
   async findById(ticketId, options = {}) {
     const {
-      populate = 'assignedTo assignedBy resolvedBy',
+      populate = null, // Make populate optional
       select = 'name email role',
       lean = true,
       includeTasks = true,
     } = options;
 
-    let queryBuilder = Ticket.findOne({ _id: ticketId, isDeleted: false })
-      .populate(populate, select);
+    let queryBuilder = Ticket.findOne({ _id: ticketId, isDeleted: false });
+
+    // Only populate if populate field is provided
+    if (populate) {
+      queryBuilder = queryBuilder.populate(populate, select);
+    }
 
     if (includeTasks) {
       queryBuilder = queryBuilder.populate('tasks', 'title status priority estimatedHours deadline');
@@ -108,15 +116,22 @@ class TicketRepository {
    */
   async updateById(ticketId, updates, options = {}) {
     const {
-      populate = 'assignedTo assignedBy resolvedBy',
+      populate = null, // Make populate optional
       select = 'name email role',
     } = options;
 
-    return Ticket.findOneAndUpdate(
+    let query = Ticket.findOneAndUpdate(
       { _id: ticketId, isDeleted: false },
       { $set: updates },
       { new: true, runValidators: true }
-    ).populate(populate, select);
+    );
+
+    // Only populate if populate field is provided
+    if (populate) {
+      query = query.populate(populate, select);
+    }
+
+    return query;
   }
 
   /**
