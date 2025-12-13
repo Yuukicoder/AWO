@@ -1,6 +1,5 @@
 import ticketRepository from '../repository/ticket.repository.js';
-import taskRepository from '../repository/task.repository.js';
-import { publishEvent } from '../config/redis.js';
+import eventService from './event.service.js';
 
 class TicketService {
   /**
@@ -18,14 +17,16 @@ class TicketService {
     
     const ticket = await ticketRepository.create(data);
     
-    // Emit event for real-time updates
-    await publishEvent('ticket:created', {
+    // 🚀 Broadcast event
+    await eventService.broadcastEvent('ticket:created', {
       ticketId: ticket._id,
       number: ticket.number,
       subject: ticket.subject,
       priority: ticket.priority,
-      reporterEmail: ticket.reporter.email,
-      timestamp: new Date(),
+      status: ticket.status,
+      reporterEmail: ticket.reporter?.email,
+      assignedTo: ticket.assignedTo,
+      timestamp: new Date()
     });
     
     return ticket;
@@ -120,13 +121,15 @@ class TicketService {
       throw new Error('Ticket not found');
     }
     
-    // Emit update event
-    await publishEvent('ticket:updated', {
+    // 🚀 Broadcast event
+    await eventService.broadcastEvent('ticket:updated', {
       ticketId: ticket._id,
       number: ticket.number,
-      changes: Object.keys(updates),
-      newStatus: ticket.status,
+      subject: ticket.subject,
+      priority: ticket.priority,
+      status: ticket.status,
       assignedTo: ticket.assignedTo,
+      changes: Object.keys(updates),
       timestamp: new Date(),
     });
     
@@ -137,30 +140,18 @@ class TicketService {
    * Delete ticket (soft delete)
    */
   async deleteTicket(ticketId, deletedBy = null) {
-    // Check if ticket has active tasks
-    const activeTasks = await taskRepository.find(
-      { 
-        ticketId, 
-        status: { $in: ['todo', 'in_progress'] } 
-      },
-      { lean: true }
-    );
-    
-    if (activeTasks.length > 0) {
-      throw new Error('Cannot delete ticket with active tasks. Please complete or reassign tasks first.');
-    }
-    
     const ticket = await ticketRepository.softDeleteById(ticketId, deletedBy);
     
     if (!ticket) {
       throw new Error('Ticket not found');
     }
     
-    // Emit delete event
-    await publishEvent('ticket:deleted', {
+    // 🚀 Broadcast event
+    await eventService.broadcastEvent('ticket:deleted', {
       ticketId: ticket._id,
       number: ticket.number,
       subject: ticket.subject,
+      deletedBy,
       timestamp: new Date(),
     });
     
@@ -182,11 +173,12 @@ class TicketService {
       throw new Error('Ticket not found');
     }
     
-    // Emit assignment event
-    await publishEvent('ticket:assigned', {
+    // 🚀 Broadcast event
+    await eventService.broadcastEvent('ticket:assigned', {
       ticketId: ticket._id,
       number: ticket.number,
       subject: ticket.subject,
+      priority: ticket.priority,
       assignedTo: ticket.assignedTo,
       assignedBy: assignedById,
       timestamp: new Date(),
@@ -216,13 +208,15 @@ class TicketService {
     const resolutionTime = Math.round((ticket.resolvedAt - ticket.createdAt) / (1000 * 60 * 60));
     await ticketRepository.updateById(ticketId, { actualResolutionTime: resolutionTime });
     
-    // Emit resolution event
-    await publishEvent('ticket:resolved', {
+    // 🚀 Broadcast event
+    await eventService.broadcastEvent('ticket:resolved', {
       ticketId: ticket._id,
       number: ticket.number,
       subject: ticket.subject,
+      priority: ticket.priority,
       resolvedBy,
       resolutionTime,
+      resolutionNotes: resolutionData.notes,
       timestamp: new Date(),
     });
     

@@ -1,17 +1,28 @@
-import taskService from '../service/task.service.js';
+import taskService from "../service/task.service.js";
 
 class TaskController {
   async createTask(req, res) {
     try {
-      const { title, description, priority, status, deadline, tags, estimatedHours, assignedTo } = req.body;
+      const {
+        title,
+        description,
+        ticketId,
+        priority,
+        status,
+        deadline,
+        tags,
+        estimatedHours,
+        assignedTo,
+      } = req.body;
 
       if (!title) {
-        return res.status(400).json({ message: 'Task title is required' });
+        return res.status(400).json({ message: "Task title is required" });
       }
 
       const task = await taskService.createTask({
         title,
         description,
+        ticketId,
         priority,
         status,
         deadline,
@@ -21,10 +32,15 @@ class TaskController {
         createdBy: req.user._id,
       });
 
-      return res.status(201).json({ message: 'Task created successfully', data: task });
+
+      return res
+        .status(201)
+        .json({ message: "Task created successfully", data: task });
     } catch (error) {
-      console.error('Create task error:', error);
-      return res.status(500).json({ message: error.message || 'Failed to create task' });
+      console.error("Create task error:", error);
+      return res
+        .status(500)
+        .json({ message: error.message || "Failed to create task" });
     }
   }
 
@@ -37,10 +53,10 @@ class TaskController {
         createdBy,
         page = 1,
         limit = 10,
-        sortBy = 'createdAt',
-        sortOrder = 'desc',
+        sortBy = "createdAt",
+        sortOrder = "desc",
         search,
-        isDeleted = isDeleted === undefined ? 'false' : isDeleted,
+        isDeleted = isDeleted === undefined ? "false" : isDeleted,
       } = req.query;
 
       const filters = {};
@@ -52,8 +68,8 @@ class TaskController {
 
       if (search) {
         filters.$or = [
-          { title: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
+          { title: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
         ];
       }
 
@@ -66,8 +82,10 @@ class TaskController {
 
       return res.status(200).json(result);
     } catch (error) {
-      console.error('Get tasks error:', error);
-      return res.status(500).json({ message: error.message || 'Failed to fetch tasks' });
+      console.error("Get tasks error:", error);
+      return res
+        .status(500)
+        .json({ message: error.message || "Failed to fetch tasks" });
     }
   }
 
@@ -77,8 +95,10 @@ class TaskController {
       const task = await taskService.getTaskById(id);
       return res.status(200).json({ data: task });
     } catch (error) {
-      const statusCode = error.message === 'Task not found' ? 404 : 500;
-      return res.status(statusCode).json({ message: error.message || 'Failed to fetch task' });
+      const statusCode = error.message === "Task not found" ? 404 : 500;
+      return res
+        .status(statusCode)
+        .json({ message: error.message || "Failed to fetch task" });
     }
   }
 
@@ -92,10 +112,16 @@ class TaskController {
       delete updates.isDeleted;
 
       const task = await taskService.updateTask(id, updates);
-      return res.status(200).json({ message: 'Task updated successfully', data: task });
+
+
+      return res
+        .status(200)
+        .json({ message: "Task updated successfully", data: task });
     } catch (error) {
-      const statusCode = error.message === 'Task not found' ? 404 : 500;
-      return res.status(statusCode).json({ message: error.message || 'Failed to update task' });
+      const statusCode = error.message === "Task not found" ? 404 : 500;
+      return res
+        .status(statusCode)
+        .json({ message: error.message || "Failed to update task" });
     }
   }
   // Delete (soft delete) a task
@@ -105,25 +131,32 @@ class TaskController {
       const result = await taskService.deleteTask(id);
       return res.status(200).json(result);
     } catch (error) {
-      const statusCode = error.message === 'Task not found' ? 404 : 500;
-      return res.status(statusCode).json({ message: error.message || 'Failed to delete task' });
+      const statusCode = error.message === "Task not found" ? 404 : 500;
+      return res
+        .status(statusCode)
+        .json({ message: error.message || "Failed to delete task" });
     }
   }
-
+  // Assign task to a user
   async assignTask(req, res) {
     try {
       const { id } = req.params;
       const { userId } = req.body;
 
       if (!userId) {
-        return res.status(400).json({ message: 'userId is required' });
+        return res.status(400).json({ message: "userId is required" });
       }
 
       const task = await taskService.assignTask(id, userId);
-      return res.status(200).json({ message: 'Task assigned successfully', data: task });
+
+      return res
+        .status(200)
+        .json({ message: "Task assigned successfully", data: task });
     } catch (error) {
-      const statusCode = error.message === 'Task not found' ? 404 : 500;
-      return res.status(statusCode).json({ message: error.message || 'Failed to assign task' });
+      const statusCode = error.message === "Task not found" ? 404 : 500;
+      return res
+        .status(statusCode)
+        .json({ message: error.message || "Failed to assign task" });
     }
   }
 }

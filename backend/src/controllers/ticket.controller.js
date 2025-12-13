@@ -1,11 +1,6 @@
 import ticketService from '../service/ticket.service.js';
 
 class TicketController {
-  /**
-   * @route   POST /api/tickets
-   * @desc    Create a new ticket
-   * @access  Private
-   */
   async createTicket(req, res) {
     try {
       const {
@@ -28,12 +23,12 @@ class TicketController {
         });
       }
 
-      if (!reporter || !reporter.email) {
-        return res.status(400).json({
-          success: false,
-          message: 'Reporter email is required',
-        });
-      }
+      // if (!reporter || !reporter.email) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: 'Reporter email is required',
+      //   });
+      // }
 
       const ticketData = {
         subject,
@@ -49,6 +44,8 @@ class TicketController {
 
       const ticket = await ticketService.createTicket(ticketData);
 
+       
+
       res.status(201).json({
         success: true,
         message: 'Ticket created successfully',
@@ -63,11 +60,6 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   GET /api/tickets
-   * @desc    Get all tickets with filters and pagination
-   * @access  Private
-   */
   async getTickets(req, res) {
     try {
       const {
@@ -126,11 +118,6 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   GET /api/tickets/:id
-   * @desc    Get ticket by ID
-   * @access  Private
-   */
   async getTicketById(req, res) {
     try {
       const { id } = req.params;
@@ -149,11 +136,6 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   GET /api/tickets/number/:ticketNumber
-   * @desc    Get ticket by number
-   * @access  Private
-   */
   async getTicketByNumber(req, res) {
     try {
       const { ticketNumber } = req.params;
@@ -172,11 +154,7 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   PUT /api/tickets/:id
-   * @desc    Update ticket
-   * @access  Private
-   */
+
   async updateTicket(req, res) {
     try {
       const { id } = req.params;
@@ -204,11 +182,6 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   DELETE /api/tickets/:id
-   * @desc    Delete ticket (soft delete)
-   * @access  Private
-   */
   async deleteTicket(req, res) {
     try {
       const { id } = req.params;
@@ -229,11 +202,6 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   POST /api/tickets/:id/assign
-   * @desc    Assign ticket to user
-   * @access  Private (Admin/Manager only)
-   */
   async assignTicket(req, res) {
     try {
       const { id } = req.params;
@@ -263,11 +231,7 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   POST /api/tickets/:id/resolve
-   * @desc    Resolve ticket
-   * @access  Private
-   */
+  
   async resolveTicket(req, res) {
     try {
       const { id } = req.params;
@@ -290,11 +254,7 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   GET /api/tickets/stats
-   * @desc    Get ticket statistics
-   * @access  Private
-   */
+
   async getTicketStats(req, res) {
     try {
       const { assignedTo, reporterEmail, dateFrom, dateTo } = req.query;
@@ -323,11 +283,6 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   GET /api/tickets/search
-   * @desc    Search tickets
-   * @access  Private
-   */
   async searchTickets(req, res) {
     try {
       const { q, page = 1, limit = 10 } = req.query;
@@ -357,11 +312,7 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   GET /api/tickets/reporter/:email
-   * @desc    Get tickets by reporter email
-   * @access  Private
-   */
+
   async getTicketsByReporter(req, res) {
     try {
       const { email } = req.params;
@@ -391,11 +342,7 @@ class TicketController {
     }
   }
 
-  /**
-   * @route   GET /api/tickets/assigned/:userId
-   * @desc    Get tickets assigned to user
-   * @access  Private
-   */
+
   async getTicketsByAssignee(req, res) {
     try {
       const { userId } = req.params;

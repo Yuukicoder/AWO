@@ -65,7 +65,7 @@ const ticketSchema = new mongoose.Schema({
     },
     email: {
       type: String,
-      required: true,
+      // required: true,
       trim: true,
       lowercase: true,
       index: true
@@ -76,7 +76,6 @@ const ticketSchema = new mongoose.Schema({
       default: ''
     }
   },
-  
   // Assignment information
   assignedTo: {
     type: mongoose.Schema.Types.ObjectId,
@@ -217,7 +216,7 @@ ticketSchema.virtual('taskCount', {
 });
 
 // Pre-save middleware for auto-incrementing ticket number
-ticketSchema.pre('save', async function(next) {
+ticketSchema.pre('save', async function() {
   if (this.isNew && !this.number) {
     try {
       const counter = await Counter.findByIdAndUpdate(
@@ -228,10 +227,9 @@ ticketSchema.pre('save', async function(next) {
       
       this.number = `TKT-${String(counter.sequence_value).padStart(6, '0')}`;
     } catch (error) {
-      return next(error);
+      throw error;
     }
   }
-  next();
 });
 
 // Instance methods
