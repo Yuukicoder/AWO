@@ -7,7 +7,10 @@ export { authService } from './auth.service';
 export { userService } from './user.service';
 
 // Export default object chứa tất cả services
+import { authService } from './auth.service';
+import { userService } from './user.service';
+
 export default {
-    auth: require('./auth.service').authService,
-    user: require('./user.service').userService
+    auth: authService,
+    user: userService
 };

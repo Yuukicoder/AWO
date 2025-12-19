@@ -1,4 +1,4 @@
-# 🚀 30-Day MVP Development Flow - AI Workflow Orchestrator
+#   30-Day MVP Development Flow - AI Workflow Orchestrator
 
 ## 📋 Overview
 This document outlines the step-by-step flow for building the MVP of the AI Workflow Orchestrator within 30 days. Follow this guide sequentially for optimal results.
@@ -60,15 +60,17 @@ This document outlines the step-by-step flow for building the MVP of the AI Work
    ```
 
 #### Day 4-7: Database Schema & Auth
-4. ✅ Design and create Prisma schema
-   - Tables: `User`, `Skill`, `Task`, `Assignment`, `Team`
-   - Define relationships
+4. ✅ Design and create MongoDB collections
+   - Collections: `User`, `Ticket`, `Task`, `Assignment`, `Team`
+   - Ticket (Parent) → Task (Child) relationship
+   - Auto-incrementing ticket numbers (TKT-000001)
+   - SLA tracking and AI analysis fields
    - Add indexes for performance
 
-5. ✅ Run migrations
+5. ✅ Setup MongoDB connections
    ```bash
-   npx prisma migrate dev --name init
-   npx prisma generate
+   npm install mongoose
+   # Configure MongoDB connection
    ```
 
 6. ✅ Implement Authentication Module
@@ -158,30 +160,48 @@ This document outlines the step-by-step flow for building the MVP of the AI Work
 
 ### 🔧 Dev A - Task Engine Backend
 
-#### Day 15-17: Task CRUD API
-1. ✅ Create Task Module
-   - Create Task model in Prisma schema
+#### Day 15-17: Ticket & Task Management API
+1. ✅ Create Ticket & Task Modules
+   - Create Ticket model (Parent entity)
+   ```
+   Ticket Entity:
+   - number (auto TKT-000001), subject, description
+   - priority (urgent, high, medium, low)
+   - status (open, assigned, in_progress, resolved, closed)
+   - reporter (email-based), assignedTo, resolvedBy
+   - dueDate, SLA tracking, AI analysis results
+   ```
+   - Create Task model (Child entity with ticketId reference)
    ```
    Task Entity:
-   - id, title, description
-   - priority (low, medium, high, urgent)
-   - status (todo, in_progress, review, done)
-   - createdBy, assignedTo
-   - deadline, tags
+   - ticketId (parent reference), title, description
+   - priority, status, createdBy, assignedTo
+   - deadline, estimatedHours, tags
    ```
-   - Create task controller and service
-   - Create task routes
+   - Repository pattern for data access
+   - Service layer with business logic
 
-2. ✅ Implement Task Endpoints
-   - `POST /tasks` - Create task
-   - `GET /tasks` - List tasks (with filters)
-   - `GET /tasks/:id` - Get task details
-   - `PUT /tasks/:id` - Update task
-   - `DELETE /tasks/:id` - Delete task
+2. ✅ Implement Ticket & Task Endpoints
+   **Tickets:**
+   - `POST /api/tickets` - Create ticket
+   - `GET /api/tickets` - List tickets (with tasks)
+   - `GET /api/tickets/:id` - Get ticket details
+   - `PUT /api/tickets/:id` - Update ticket
+   - `POST /api/tickets/:id/assign` - Assign ticket
+   - `POST /api/tickets/:id/resolve` - Resolve ticket
+   
+   **Tasks:**
+   - `POST /api/tasks` - Create task (with ticketId)
+   - `GET /api/tasks` - List tasks (with ticket info)
+   - `GET /api/tasks/:id` - Get task details
+   - `PUT /api/tasks/:id` - Update task
+   - `DELETE /api/tasks/:id` - Delete task
 
-3. ✅ Add Task Filters & Pagination
-   - Filter by: status, priority, assignee
-   - Sort by: deadline, priority, created date
+3. ✅ Add Advanced Filtering & Relationships
+   - Filter by: status, priority, assignee, ticket
+   - Ticket-Task relationship queries
+   - SLA status filtering (on_track, at_risk, breached)
+   - Search across tickets and tasks
    - Pagination support
 
 #### Day 18-19: Assignment Logic
@@ -295,26 +315,39 @@ This document outlines the step-by-step flow for building the MVP of the AI Work
      * Extract tags/keywords
      * Recommend assignee (based on skills)
 
-6. ✅ Return Task Draft
+6. ✅ Return Ticket Draft
    ```json
    Response:
    {
-     "suggested_task": {
-       "title": "...",
-       "description": "...",
+     "suggested_ticket": {
+       "subject": "System Login Issue",
+       "description": "User cannot access dashboard...",
        "priority": "high",
-       "deadline": "2025-01-15",
-       "tags": ["bug", "urgent"],
+       "category": "bug",
+       "dueDate": "2025-01-15",
+       "tags": ["login", "urgent"],
+       "reporter": {
+         "email": "user@example.com",
+         "name": "John Doe"
+       },
+       "suggested_tasks": [
+         {
+           "title": "Investigate login API",
+           "priority": "high",
+           "estimatedHours": 4
+         }
+       ],
        "confidence": 0.85
      }
    }
    ```
 
 #### Day 28-30: Manual Review Flow
-7. ✅ Create Task Draft Endpoints
+7. ✅ Create Ticket Draft Endpoints
    - Save AI draft to temporary storage (Redis)
-   - `GET /triage/drafts/:id` - Retrieve draft
-   - `POST /triage/drafts/:id/confirm` - Convert to real task
+   - `GET /api/triage/drafts/:id` - Retrieve draft
+   - `POST /api/triage/drafts/:id/confirm` - Convert to real ticket
+   - Auto-create related tasks from AI suggestions
 
 8. ✅ Testing & Refinement
    - Test with various email formats
@@ -380,21 +413,27 @@ This document outlines the step-by-step flow for building the MVP of the AI Work
 ```
 1. User pastes email into Triage page
    ↓
-2. AI analyzes → Suggests task draft
+2. AI analyzes → Suggests ticket draft with tasks
    ↓
 3. User reviews → Edits if needed → Confirms
    ↓
-4. Task created in database
+4. Ticket created in database (with auto-number TKT-000001)
    ↓
-5. Task appears in Task List (real-time)
+5. Related tasks auto-created and linked to ticket
    ↓
-6. PM/Admin assigns task to team member
+6. Ticket appears in Ticket List (real-time)
    ↓
-7. Assigned user receives notification (WebSocket)
+7. PM/Admin assigns ticket to team member
    ↓
-8. User updates task status
+8. Assigned user receives notification (WebSocket)
    ↓
-9. All connected clients see updates (real-time)
+9. User works on individual tasks within ticket
+   ↓
+10. Task status updates reflected in ticket SLA
+    ↓
+11. All connected clients see updates (real-time)
+    ↓
+12. Ticket resolved when all tasks complete
 ```
 
 ---
@@ -404,44 +443,51 @@ This document outlines the step-by-step flow for building the MVP of the AI Work
 ### Backend (Dev A)
 - ✅ Authentication system (JWT)
 - ✅ Role-based access control
-- ✅ Task CRUD API
-- ✅ Manual task assignment
-- ✅ Workload calculator
-- ✅ Redis pub/sub
+- ✅ Ticket CRUD API with auto-numbering
+- ✅ Task CRUD API with ticket relationship
+- ✅ Repository pattern implementation
+- ✅ Manual ticket/task assignment
+- ✅ SLA tracking and workload calculator
+- ✅ Redis pub/sub for ticket/task events
 - ✅ WebSocket gateway
 - ✅ OpenAI integration
 - ✅ Email triage endpoint
-- ✅ Task draft review system
+- ✅ Ticket draft review system
 
 ### Frontend (Dev B)
 - ✅ Authentication UI (login/register)
 - ✅ Protected routes
 - ✅ App layout (sidebar + navbar)
+- ✅ Ticket list page with SLA indicators
+- ✅ Ticket details with task hierarchy
 - ✅ Task list page (filters, sorting, search)
 - ✅ Task details modal
-- ✅ Task create/edit form
-- ✅ Real-time task updates (WebSocket)
+- ✅ Ticket/Task create/edit forms
+- ✅ Real-time ticket/task updates (WebSocket)
 - ✅ AI triage page
 - ✅ Email input & AI suggestion display
-- ✅ Task confirmation flow
+- ✅ Ticket confirmation flow with task creation
 
 ---
 
-## 🚀 Testing Checklist
+##   Testing Checklist
 
 ### Day 30 - Final Testing
 1. ✅ User can register and login
-2. ✅ User can create task manually
-3. ✅ User can view all tasks
-4. ✅ User can filter/sort tasks
-5. ✅ User can edit task
-6. ✅ Admin can assign task
-7. ✅ Real-time updates work across tabs/users
-8. ✅ User can paste email → AI suggests task
-9. ✅ User can edit AI suggestion
-10. ✅ User can confirm → Task created
-11. ✅ Notifications work properly
-12. ✅ No major bugs or crashes
+2. ✅ User can create ticket manually
+3. ✅ User can create tasks within tickets
+4. ✅ User can view all tickets with SLA status
+5. ✅ User can view all tasks filtered by ticket
+6. ✅ User can filter/sort tickets and tasks
+7. ✅ User can edit ticket/task
+8. ✅ Admin can assign ticket to team member
+9. ✅ Real-time updates work across tabs/users
+10. ✅ User can paste email → AI suggests ticket
+11. ✅ User can edit AI suggestion
+12. ✅ User can confirm → Ticket + Tasks created
+13. ✅ SLA tracking works correctly
+14. ✅ Notifications work properly
+15. ✅ No major bugs or crashes
 
 ---
 
@@ -474,8 +520,7 @@ After MVP completion, focus on:
 
 **Backend:**
 - Node.js + Express (Server framework)
-- PostgreSQL (Database)
-- Prisma (ORM)
+- MongoDB + Mongoose (Database & ODM)
 - Redis (Pub/sub, caching)
 - JWT (Authentication)
 - Socket.io (WebSocket)
@@ -490,6 +535,11 @@ After MVP completion, focus on:
 - Axios (HTTP client)
 - Socket.io-client (WebSocket)
 - React Router (Routing)
+
+**Data Architecture:**
+- Ticket (Parent) → Task (Child) relationship
+- Repository pattern for data access
+- Service layer for business logic
 
 ---
 
@@ -728,4 +778,4 @@ After MVP completion, focus on:
 
 ---
 
-**🎯 Goal: Working MVP by December 25, 2025! Let's ship it! 🚀**
+**🎯 Goal: Working MVP by December 25, 2025! Let's ship it!  **
