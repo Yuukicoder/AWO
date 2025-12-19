@@ -11,24 +11,63 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 - MongoDB connection
 - Redis + Socket.io integration  
 - Basic Task CRUD API
+- **Ticket CRUD API with parent-child relationship**
+- **Repository pattern implementation**
+- **Auto-incrementing ticket numbers (TKT-000001)**
 - React app structure
 - Authentication system
 
 🔄 **In Progress:**
 - Day 2 tasks (Real-time Events)
+- **Ticket-Task relationship integration**
 
 ---
 
 ## 📅 Day-by-Day Task Breakdown
+
+### **📍 Day 1.5 (Dec 12) - Ticket System Foundation**
+
+#### 🔧 **COMPLETED - Dev A Tasks:**
+**Backend: Ticket Management API**
+
+1. ✅ **Ticket Model & Repository**
+   ```javascript
+   // File: src/models/tickets.model.js - COMPLETED
+   // Auto-incrementing ticket numbers (TKT-000001)
+   // SLA tracking, AI analysis fields
+   // Parent entity for tasks
+   ```
+
+2. ✅ **Ticket Service & Controller**
+   ```javascript
+   // File: src/service/ticket.service.js - COMPLETED
+   // File: src/controllers/ticket.controller.js - COMPLETED
+   // Business logic for ticket lifecycle
+   // SLA management, assignment logic
+   ```
+
+3. ✅ **Ticket Routes**
+   ```javascript
+   // File: src/routes/ticket.routes.js - COMPLETED
+   // Full CRUD + assignment + resolution endpoints
+   ```
+
+4. ✅ **Task-Ticket Relationship**
+   ```javascript
+   // File: src/models/tasks.model.js - UPDATED
+   // Added ticketId field for parent-child relationship
+   ```
+
+---
 
 ### **📍 Day 2 (Dec 12) - Real-time Events**
 
 #### 🔧 **Dev A Tasks:**
 **Backend: Redis Pub/Sub Implementation**
 
-1. **Update Task Service với Event Emission**
+1. **Update Task & Ticket Services với Event Emission** done
    ```javascript
-   // File: src/service/task.service.js
+   // File: src/service/task.service.js & src/service/ticket.service.js
    // Cần add sau mỗi CRUD operation:
    
    import { publishEvent } from '../config/redis.js';
@@ -36,21 +75,36 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
    // Sau khi tạo task thành công
    await publishEvent('task:created', {
      taskId: task._id,
+     ticketId: task.ticketId,
      title: task.title,
      assignedTo: task.assignedTo,
      priority: task.priority,
      timestamp: new Date()
    });
+   
+   // Sau khi tạo ticket thành công
+   await publishEvent('ticket:created', {
+     ticketId: ticket._id,
+     number: ticket.number,
+     subject: ticket.subject,
+     priority: ticket.priority,
+     reporterEmail: ticket.reporter.email,
+     timestamp: new Date()
+   });
    ```
 
-2. **Tạo Event Broadcasting Service**
+2. **Tạo Event Broadcasting Service** done
    ```javascript
    // File: src/service/event.service.js (TẠO MỚI)
-   // Centralized event management
+   // Centralized event management cho tickets và tasks
+   // Support cho ticket:created, ticket:assigned, ticket:resolved
+   // Support cho task:created, task:updated, task:assigned
+   // Ticket-Task relationship events
    ```
 
-3. **Test Redis Events**
-   - Tạo sample tasks và verify events được emit
+3. **Test Redis Events** done
+   - Tạo sample tickets và tasks và verify events được emit
+   - Test parent-child relationship events
    - Test với Thunder Client
 
 #### 🎨 **Dev A Frontend Tasks:**
@@ -83,6 +137,8 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
    ```javascript
    // File: src/service/workload.service.js (TẠO MỚI)
    // Calculate user workload metrics
+   // Include both tickets và tasks trong calculation
+   // SLA deadline weighting
    ```
 
 2. **Add Workload Endpoint**
@@ -102,8 +158,9 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 
 1. **Tạo Assignment Modal**
    ```jsx
-   // File: src/components/task/AssignmentModal.jsx (TẠO MỚI)
-   // Modal để assign task cho user
+   // File: src/components/assignment/AssignmentModal.jsx (TẠO MỚI)
+   // Modal để assign ticket hoặc task cho user
+   // Support cho both ticket assignment và task assignment
    ```
 
 2. **Tạo User Selection Dropdown**
@@ -112,80 +169,108 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
    // Dropdown với search functionality
    ```
 
-3. **Update Task List với Assignment**
+3. **Update User Management với Ticket/Task Assignment**
    ```jsx
    // File: src/pages/Home/UserManagementPage.jsx
-   // Add assignment button và modal
+   // Add assignment button cho cả tickets và tasks
+   // Show workload including ticket SLA status
    ```
 
 ---
 
-### **📍 Day 3 (Dec 13) - Task List & Filtering**
+### **📍 Day 3 (Dec 13) - Ticket & Task List & Filtering**
 
 #### 🔧 **Dev A Tasks:**
-**Backend: Advanced Filtering**
+**Backend: Advanced Filtering cho Tickets & Tasks**
 
-1. **Enhance Task Service**
+1. **Enhance Ticket & Task Services**
    ```javascript
-   // File: src/service/task.service.js
-   // Add search, date filtering, statistics
+   // File: src/service/ticket.service.js & src/service/task.service.js
+   // Add search, date filtering, SLA filtering
+   // Ticket-Task relationship queries
+   // Statistics cho both entities
    ```
 
-2. **Add Statistics Endpoint**
+2. **Add Statistics Endpoints**
    ```javascript
+   // File: src/controllers/ticket.controller.js
+   // GET /api/tickets/stats - SLA dashboard data
    // File: src/controllers/task.controller.js  
-   // GET /api/tasks/stats
+   // GET /api/tasks/stats - Task completion metrics
    ```
 
 #### 🎨 **Dev A Frontend Tasks:**
-**Task Store Enhancement**
+**Ticket & Task Store Enhancement**
 
-1. **Update Task Store**
+1. **Create Ticket Store**
+   ```javascript
+   // File: src/stores/ticketStore.js (TẠO MỚI)
+   // Zustand store cho tickets
+   // Parent-child relationship management
+   ```
+
+2. **Update Task Store**
    ```javascript
    // File: src/stores/taskStore.js (TẠO MỚI)
    // Zustand store cho tasks
+   // Integration với ticket store
    ```
 
-2. **Add Socket Events Integration**
+3. **Add Socket Events Integration**
    ```javascript
-   // Integrate socket events với task store
+   // Integrate socket events với both stores
+   // Handle ticket và task real-time updates
    ```
 
 ---
 
 #### 🔧 **Dev B Tasks:**
-**Backend: Advanced Task APIs**
+**Backend: Advanced Ticket & Task APIs**
 
 1. **Add Search Validation**
    ```javascript
    // File: src/middleware/validation.middleware.js
-   // Validate search params
+   // Validate search params cho both tickets và tasks
+   // Parent-child relationship validation
    ```
 
 2. **Optimize Database Queries**
    ```javascript
    // Add proper indexes, aggregation
+   // Optimize ticket-task relationship queries
    ```
 
 #### 🎨 **Dev B Frontend Tasks:**
-**Task List UI**
+**Ticket & Task List UI**
 
-1. **Tạo Filter Components**
+1. **Tạo Ticket List Page**
    ```jsx
+   // File: src/pages/ticket/TicketListPage.jsx (TẠO MỚI)
+   // Main ticket management page
+   // Show SLA status, assigned tasks count
+   ```
+
+2. **Tạo Filter Components**
+   ```jsx
+   // File: src/components/ticket/TicketFilter.jsx (TẠO MỚI)
+   // Status, priority, SLA status filters
    // File: src/components/task/TaskFilter.jsx (TẠO MỚI)
-   // Status, priority, assignee filters
+   // Status, priority, assignee, ticket filters
    ```
 
-2. **Tạo Search Component**  
+3. **Tạo Search Components**  
    ```jsx
+   // File: src/components/ticket/TicketSearch.jsx (TẠO MỚI)
+   // Search by subject/description/number
    // File: src/components/task/TaskSearch.jsx (TẠO MỚI)
-   // Search by title/description
+   // Search by title/description, filter by ticket
    ```
 
-3. **Update Task List Page**
+4. **Update Task List Page**
    ```jsx
    // File: src/pages/task/TaskListPage.jsx (TẠO MỚI)
-   // Main task management page
+   // Show parent ticket information
+   // Filter by ticket functionality
    ```
 
 ---
@@ -195,16 +280,20 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 ### **Backend Files (Both Devs)**
 
 #### 📁 **Services**
-- `src/service/event.service.js` - Event broadcasting
-- `src/service/workload.service.js` - User workload calculation
+- `src/service/event.service.js` - Event broadcasting cho tickets & tasks
+- `src/service/workload.service.js` - User workload calculation including tickets
+- ✅ `src/service/ticket.service.js` - **COMPLETED** Ticket business logic
+- `src/stores/ticketStore.js` - Ticket state management
 - `src/stores/taskStore.js` - Task state management
 
 #### 📁 **Controllers** 
-- Update `src/controllers/task.controller.js` - Add stats, events
+- Update `src/controllers/task.controller.js` - Add stats, events, ticket relationship
+- ✅ `src/controllers/ticket.controller.js` - **COMPLETED** Full ticket CRUD with SLA
 - Update `src/controllers/user.controller.js` - Add workload endpoint
 
 #### 📁 **Routes**
-- Update `src/routes/task.routes.js` - Add new endpoints
+- Update `src/routes/task.routes.js` - Add new endpoints, ticket relationship
+- ✅ `src/routes/ticket.routes.js` - **COMPLETED** Full ticket CRUD + assignment + resolution
 - Update `src/routes/User.routes.js` - Add workload route
 
 #### 📁 **Middleware**
@@ -222,10 +311,12 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 #### 📁 **Services**
 - `src/services/socket.service.js` - WebSocket connection
 - `src/services/task.service.js` - Task API calls
+- `src/services/ticket.service.js` - Ticket API calls (TẠO MỚI)
 - Update `src/services/api.service.js` - API helpers
 
 #### 📁 **Stores**
 - `src/stores/taskStore.js` - Task state (Zustand)
+- `src/stores/ticketStore.js` - Ticket state (Zustand) (TẠO MỚI)
 - Update `src/stores/authStore.js` - Add user workload
 
 #### 📁 **Hooks**
@@ -235,12 +326,21 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 
 #### 📁 **Components**
 
+**Ticket Components:**
+- `src/components/ticket/TicketList.jsx` - Ticket list view
+- `src/components/ticket/TicketCard.jsx` - Individual ticket card
+- `src/components/ticket/TicketFilter.jsx` - Filter controls
+- `src/components/ticket/TicketSearch.jsx` - Search functionality
+- `src/components/ticket/TicketForm.jsx` - Create/Edit forms
+- `src/components/ticket/TicketDetails.jsx` - Ticket detail view
+- `src/components/ticket/SLAIndicator.jsx` - SLA status display
+
 **Task Components:**
 - `src/components/task/TaskList.jsx` - Task list view
 - `src/components/task/TaskCard.jsx` - Individual task card
 - `src/components/task/TaskFilter.jsx` - Filter controls
 - `src/components/task/TaskSearch.jsx` - Search functionality
-- `src/components/task/AssignmentModal.jsx` - Assignment interface
+- `src/components/assignment/AssignmentModal.jsx` - Assignment interface (both tickets & tasks)
 - `src/components/task/TaskForm.jsx` - Create/Edit forms
 - `src/components/task/TaskDetails.jsx` - Task detail view
 
@@ -251,10 +351,12 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 - `src/components/ui/Toast.jsx` - Notification component
 
 #### 📁 **Pages**
+- `src/pages/ticket/TicketListPage.jsx` - Main ticket page
+- `src/pages/ticket/TicketDetailPage.jsx` - Ticket details with task hierarchy
 - `src/pages/task/TaskListPage.jsx` - Main task page
 - `src/pages/task/TaskDetailPage.jsx` - Task details
-- `src/pages/dashboard/DashboardPage.jsx` - Analytics dashboard
-- Update `src/pages/Home/UserManagementPage.jsx` - Add workload display
+- `src/pages/dashboard/DashboardPage.jsx` - Analytics dashboard with SLA metrics
+- Update `src/pages/Home/UserManagementPage.jsx` - Add workload display with tickets
 
 ---
 
@@ -336,41 +438,42 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 
 ### **Dev A (Dec 12)**
 ✅ **Backend:**
-- Task events được emit properly
-- Redis pub/sub working
-- Event service implemented
+- Task & Ticket events được emit properly
+- Redis pub/sub working cho both entities
+- Event service implemented với parent-child support
 
 ✅ **Frontend:**
 - Socket.io client connected
 - WebSocket hook created
 - Real-time connection established
 
-### **Dev B (Dec 12)**
+### **Day 12 (Dec 12)**
 ✅ **Backend:**
 - Workload calculator API
-- User workload endpoint
+- User workload endpoint including tickets
 - Workload calculation logic
 
 ✅ **Frontend:**
-- Assignment modal component
+- Assignment modal component for both tickets & tasks
 - User selection dropdown  
-- Assignment integration working
+- Assignment integration working for both entities
 
 ---
 
 ## 🎯 Success Criteria
 
 ### **End of Day 2**
-- [ ] Redis events được emit khi CRUD tasks
+- [ ] Redis events được emit khi CRUD tickets & tasks
 - [ ] Frontend có thể connect tới WebSocket
-- [ ] Assignment modal hoạt động
-- [ ] Workload API trả về đúng data
+- [ ] Assignment modal hoạt động cho both tickets & tasks
+- [ ] Workload API trả về đúng data including tickets
 
 ### **End of Day 3** 
-- [ ] Task filtering hoạt động hoàn chỉnh
-- [ ] Search functionality working
+- [ ] Ticket & Task filtering hoạt động hoàn chỉnh
+- [ ] Search functionality working cho both entities
 - [ ] Real-time updates hiển thị trong UI
 - [ ] Statistics endpoint hoạt động
+- [ ] SLA tracking hiển thị correctly
 
 ---
 
@@ -400,4 +503,4 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 
 ---
 
-**🚀 Let's build an amazing MVP together! Good luck! 💪**
+**  Let's build an amazing MVP together! Good luck! 💪**

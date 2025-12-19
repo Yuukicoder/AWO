@@ -17,7 +17,7 @@ class TicketService {
     
     const ticket = await ticketRepository.create(data);
     
-    // 🚀 Broadcast event
+    //  Broadcast event
     await eventService.broadcastEvent('ticket:created', {
       ticketId: ticket._id,
       number: ticket.number,
@@ -121,7 +121,7 @@ class TicketService {
       throw new Error('Ticket not found');
     }
     
-    // 🚀 Broadcast event
+    //  Broadcast event
     await eventService.broadcastEvent('ticket:updated', {
       ticketId: ticket._id,
       number: ticket.number,
@@ -146,7 +146,7 @@ class TicketService {
       throw new Error('Ticket not found');
     }
     
-    // 🚀 Broadcast event
+    //  Broadcast event
     await eventService.broadcastEvent('ticket:deleted', {
       ticketId: ticket._id,
       number: ticket.number,
@@ -173,7 +173,7 @@ class TicketService {
       throw new Error('Ticket not found');
     }
     
-    // 🚀 Broadcast event
+    //  Broadcast event
     await eventService.broadcastEvent('ticket:assigned', {
       ticketId: ticket._id,
       number: ticket.number,
@@ -208,7 +208,7 @@ class TicketService {
     const resolutionTime = Math.round((ticket.resolvedAt - ticket.createdAt) / (1000 * 60 * 60));
     await ticketRepository.updateById(ticketId, { actualResolutionTime: resolutionTime });
     
-    // 🚀 Broadcast event
+    //  Broadcast event
     await eventService.broadcastEvent('ticket:resolved', {
       ticketId: ticket._id,
       number: ticket.number,
