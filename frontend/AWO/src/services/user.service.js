@@ -89,4 +89,29 @@ export const userService = {
     }
 };
 
+/**
+ * Get all users (for dropdown selection)
+ */
+export const getAllUsers = async () => {
+    const response = await axiosInstance.get('/users');
+    return response.data;
+};
+
+/**
+ * Get user workload metrics
+ */
+export const getUserWorkload = async (userId) => {
+    const response = await axiosInstance.get(`/users/${userId}/workload`);
+    return response.data;
+};
+
+/**
+ * Get team workload overview
+ */
+export const getTeamWorkload = async (teamMemberIds) => {
+    const response = await axiosInstance.post('/users/team/workload', { teamMemberIds });
+    return response.data;
+};
+
 export default userService;
+

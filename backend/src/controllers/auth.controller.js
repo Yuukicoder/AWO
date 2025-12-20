@@ -10,8 +10,9 @@ export const loginController = async (req, res) => {
         res.cookie('refreshToken', result.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production', // Chỉ HTTPS trong production
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+            path: '/'
         });
 
         // Chỉ trả Access Token trong response body
@@ -63,8 +64,9 @@ export const refreshTokenController = async (req, res) => {
         res.cookie('refreshToken', result.refreshToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/'
         });
 
         res.status(200).json({
@@ -85,7 +87,8 @@ export const logoutController = async (req, res) => {
         res.clearCookie('refreshToken', {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+            path: '/'
         });
 
         res.status(200).json({
