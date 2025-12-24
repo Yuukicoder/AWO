@@ -9,5 +9,4 @@ const Layout =() => {
         </Routes>
     )
 };
-
 export default Layout;

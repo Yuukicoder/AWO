@@ -159,6 +159,29 @@ class TaskController {
         .json({ message: error.message || "Failed to assign task" });
     }
   }
+
+  /**
+   * Get task statistics
+   * GET /api/tasks/stats
+   */
+  async getTaskStats(req, res) {
+    try {
+      const stats = await taskService.getTaskStats();
+
+      res.status(200).json({
+        success: true,
+        message: 'Task statistics retrieved successfully',
+        data: stats,
+      });
+    } catch (error) {
+      console.error('Error getting task stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get task statistics',
+        error: error.message,
+      });
+    }
+  }
 }
 
 export default new TaskController();

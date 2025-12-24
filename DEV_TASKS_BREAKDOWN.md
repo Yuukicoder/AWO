@@ -63,7 +63,7 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 ### **📍 Day 2 (Dec 12) - Real-time Events**
 
 #### 🔧 **Dev A Tasks:**
-<!-- **Backend: Redis Pub/Sub Implementation**
+**Backend: Redis Pub/Sub Implementation**
 
 1. **Update Task & Ticket Services với Event Emission** done
    ```javascript
@@ -105,10 +105,10 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 3. **Test Redis Events** done
    - Tạo sample tickets và tasks và verify events được emit
    - Test parent-child relationship events
-   - Test với Thunder Client -->
+   - Test với Thunder Client
 
 #### 🎨 **Dev A Frontend Tasks:**
-<!-- **WebSocket Client Setup**
+**WebSocket Client Setup**
 
 1. **Install Socket.io Client**
    ```bash
@@ -126,11 +126,11 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
    ```javascript
    // File: src/hooks/useSocket.js (TẠO MỚI)
    // Custom hook cho socket events
-   ``` -->
+   ```
 
 ---
 
-#### 🔧 **Dev B Tasks:**
+#### 🔧 **Dev B <!-- Tasks:**
 **Backend: Workload Calculator API**
 
 1. **Tạo Workload Service**
@@ -178,7 +178,7 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 
 ---
 
-### **📍 Day 3 (Dec 13) - Ticket & Task List & Filtering**
+### ** -->📍 Day 3 (Dec 13) - Ticket & Task List & Filtering**
 
 #### 🔧 **Dev A Tasks:**
 **Backend: Advanced Filtering cho Tickets & Tasks**

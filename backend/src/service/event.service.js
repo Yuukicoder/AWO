@@ -7,7 +7,7 @@ class EventService {
      */
     async broadcastEvent(eventType, eventData) {
         try {
-            await publishEvent(eventType, eventData);
+            // await publishEvent(eventType, eventData);
 
             await this.emitSocketEvent(eventType, eventData);
 
