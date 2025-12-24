@@ -19,7 +19,7 @@ class TicketService {
         return axiosInstance.delete(`/tickets/${id}`);
     }
     assignTicket(id, userId){
-        return axiosInstance.post(`/tickets/${id}/assign`, userId);
+        return axiosInstance.post(`/tickets/${id}/assign`, { assignedTo: userId });
     }
     resolveTicket(id, notes){
         return axiosInstance.post(`/tickets/${id}/resolve`, notes);
@@ -41,4 +41,14 @@ class TicketService {
     }
 
 }
+
+// Export as named exports for easier use in components
+export const createTicket = (data) => new TicketService().createTicket(data);
+export const getTicket = (params) => new TicketService().getTicket(params);
+export const getTicketById = (id) => new TicketService().getTicketById(id);
+export const updateTicket = (id, data) => new TicketService().updateTicket(id, data);
+export const deleteTicket = (id) => new TicketService().deleteTicket(id);
+export const assignTicket = (id, userId) => new TicketService().assignTicket(id, userId);
+export const resolveTicket = (id, notes) => new TicketService().resolveTicket(id, notes);
+
 export default new TicketService;

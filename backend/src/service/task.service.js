@@ -160,6 +160,30 @@ class TaskService {
     
     return changes;
   }
+  
+  /**
+   * Get task statistics
+   */
+  async getTaskStats() {
+    const stats = await taskRepository.getStats();
+    
+    // Calculate completion rate
+    const completionRate = stats.totalTasks > 0
+      ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
+      : 0;
+
+    return {
+      totalTasks: stats.totalTasks || 0,
+      completedTasks: stats.completedTasks || 0,
+      byStatus: stats.byStatus || [],
+      byPriority: stats.byPriority || [],
+      overdueCount: stats.overdueCount || 0,
+      completionRate,
+      averageCompletionTime: stats.averageCompletionTime || 0,
+      totalEstimatedHours: stats.totalEstimatedHours || 0,
+      totalActualHours: stats.totalActualHours || 0,
+    };
+  }
 }
 
 export default new TaskService();

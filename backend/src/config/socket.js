@@ -15,49 +15,49 @@ const getAllowedOrigins = () => {
 };
 
 const registerRedisListeners = () => {
-  if (redisListenerRegistered) {
-    return;
-  }
+  // if (redisListenerRegistered) {
+  //   return;
+  // }
 
-  redisSubscriber.on("pmessage", (_pattern, channel, message) => {
-    if (!ioInstance) {
-      return;
-    }
+  // redisSubscriber.on("pmessage", (_pattern, channel, message) => {
+  //   if (!ioInstance) {
+  //     return;
+  //   }
 
-    try {
-      const payload = JSON.parse(message);
-      console.log(`🔔 Broadcasting Redis event: ${channel}`);
-      ioInstance.emit(channel, payload);
-    } catch (error) {
-      console.error(`Failed to parse Redis message on ${channel}:`, error.message);
-      ioInstance.emit(channel, message);
-    }
-  });
+  //   try {
+  //     const payload = JSON.parse(message);
+  //     console.log(`🔔 Broadcasting Redis event: ${channel}`);
+  //     ioInstance.emit(channel, payload);
+  //   } catch (error) {
+  //     console.error(`Failed to parse Redis message on ${channel}:`, error.message);
+  //     ioInstance.emit(channel, message);
+  //   }
+  // });
 
-  // Subscribe to both task and ticket patterns
-  redisSubscriber.psubscribe("task:*", (error) => {
-    if (error) {
-      console.error("Failed to subscribe Redis pattern task:*:", error.message);
-    } else {
-      console.log("📡 Redis subscriber listening on task:* channels");
-    }
-  });
+  // // Subscribe to both task and ticket patterns
+  // redisSubscriber.psubscribe("task:*", (error) => {
+  //   if (error) {
+  //     console.error("Failed to subscribe Redis pattern task:*:", error.message);
+  //   } else {
+  //     console.log("📡 Redis subscriber listening on task:* channels");
+  //   }
+  // });
 
-  redisSubscriber.psubscribe("ticket:*", (error) => {
-    if (error) {
-      console.error("Failed to subscribe Redis pattern ticket:*:", error.message);
-    } else {
-      console.log("📡 Redis subscriber listening on ticket:* channels");
-    }
-  });
+  // redisSubscriber.psubscribe("ticket:*", (error) => {
+  //   if (error) {
+  //     console.error("Failed to subscribe Redis pattern ticket:*:", error.message);
+  //   } else {
+  //     console.log("📡 Redis subscriber listening on ticket:* channels");
+    
 
-  redisSubscriber.psubscribe("notification:*", (error) => {
-    if (error) {
-      console.error("Failed to subscribe Redis pattern notification:*:", error.message);
-    } else {
-      console.log("📡 Redis subscriber listening on notification:* channels");
-    }
-  });
+
+  // // redisSubscriber.psubscribe("notification:*", (error) => {
+  //   if (error) {
+  //     console.error("Failed to subscribe Redis pattern notification:*:", error.message);
+  //   } else {
+  //     console.log("📡 Redis subscriber listening on notification:* channels");
+  //   }
+  // });
 
   redisListenerRegistered = true;
 };

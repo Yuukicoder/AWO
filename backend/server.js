@@ -32,6 +32,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', userRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/tickets', ticketRoutes);
 
@@ -41,7 +42,7 @@ const PORT = process.env.PORT || 3002;
 const startServer = async () => {
     try {
         await connectDB();
-        await connectRedis();
+        // await connectRedis();
 
         initSocket(httpServer);
 
@@ -50,7 +51,7 @@ const startServer = async () => {
         });
     } catch (error) {
         console.error('❌ Failed to start server:', error);
-        await disconnectRedis().catch(() => {});
+        // await disconnectRedis().catch(() => {});
         process.exit(1);
     }
 };
@@ -66,9 +67,10 @@ const shutdown = (signal) => {
             process.exit(1);
         }
 
-        disconnectRedis()
-            .catch(() => {})
-            .finally(() => process.exit(0));
+        // disconnectRedis()
+        //     .catch(() => {})
+        //     .finally(() => process.exit(0));
+        process.exit(0);
     });
 };
 

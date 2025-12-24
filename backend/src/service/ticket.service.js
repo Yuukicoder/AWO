@@ -420,6 +420,27 @@ class TicketService {
     
     return processedFilters;
   }
+
+  /**
+   * Get ticket statistics
+   */
+  async getTicketStats(filters = {}) {
+    const stats = await ticketRepository.getStats(filters);
+    
+    // Calculate additional metrics
+    const overdueCount = stats.byStatus?.reduce((sum, item) => {
+      return item.status !== 'closed' && item.overdueCount ? sum + item.overdueCount : sum;
+    }, 0) || 0;
+
+    return {
+      totalTickets: stats.totalTickets || 0,
+      byStatus: stats.byStatus || [],
+      byPriority: stats.byPriority || [],
+      bySLA: stats.bySLA || [],
+      overdueCount,
+      averageResolutionTime: stats.averageResolutionTime || 0,
+    };
+  }
 }
 
 export default new TicketService();

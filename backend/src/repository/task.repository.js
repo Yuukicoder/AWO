@@ -14,8 +14,8 @@ class TaskRepository {
    */
   async find(filters = {}, options = {}) {
     const {
-      page = 1,
-      limit = 10,
+      page,
+      limit,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       populate = 'createdBy assignedTo ticketId',
@@ -24,14 +24,20 @@ class TaskRepository {
     } = options;
 
     const query = { isDeleted: false, ...filters };
-    const skip = (page - 1) * limit;
     const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
-    let queryBuilder = Task.find(query)
-      .populate(populate, select)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
+    let queryBuilder = Task.find(query).sort(sort);
+
+    // Apply pagination only if page and limit are provided
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      queryBuilder = queryBuilder.skip(skip).limit(limit);
+    }
+
+    // Only populate if populate is not null/false
+    if (populate) {
+      queryBuilder = queryBuilder.populate(populate, select);
+    }
 
     if (lean) {
       queryBuilder = queryBuilder.lean();
@@ -108,17 +114,86 @@ class TaskRepository {
    */
   async getStats(filters = {}) {
     const query = { isDeleted: false, ...filters };
-    
-    return Task.aggregate([
-      { $match: query },
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 },
-          totalEstimatedHours: { $sum: '$estimatedHours' },
+    const now = new Date();
+
+    const [
+      totalTasks,
+      completedTasks,
+      byStatus,
+      byPriority,
+      overdueCount,
+      avgCompletionTime,
+      hoursStats,
+    ] = await Promise.all([
+      // Total tasks (excluding deleted)
+      Task.countDocuments(query),
+
+      // Completed tasks
+      Task.countDocuments({ ...query, status: 'completed' }),
+
+      // By status
+      Task.aggregate([
+        { $match: query },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+        { $project: { status: '$_id', count: 1, _id: 0 } },
+      ]),
+
+      // By priority
+      Task.aggregate([
+        { $match: query },
+        { $group: { _id: '$priority', count: { $sum: 1 } } },
+        { $project: { priority: '$_id', count: 1, _id: 0 } },
+      ]),
+
+      // Overdue tasks count
+      Task.countDocuments({
+        ...query,
+        dueDate: { $lt: now },
+        status: { $nin: ['completed', 'cancelled'] },
+      }),
+
+      // Average completion time
+      Task.aggregate([
+        {
+          $match: {
+            ...query,
+            status: 'completed',
+            completedAt: { $exists: true },
+          },
         },
-      },
+        {
+          $project: {
+            completionTime: {
+              $divide: [{ $subtract: ['$completedAt', '$createdAt'] }, 1000 * 60 * 60],
+            },
+          },
+        },
+        { $group: { _id: null, avgTime: { $avg: '$completionTime' } } },
+      ]),
+
+      // Hours statistics
+      Task.aggregate([
+        { $match: query },
+        {
+          $group: {
+            _id: null,
+            totalEstimated: { $sum: { $ifNull: ['$estimatedHours', 0] } },
+            totalActual: { $sum: { $ifNull: ['$actualHours', 0] } },
+          },
+        },
+      ]),
     ]);
+
+    return {
+      totalTasks,
+      completedTasks,
+      byStatus,
+      byPriority,
+      overdueCount,
+      averageCompletionTime: avgCompletionTime[0]?.avgTime || 0,
+      totalEstimatedHours: hoursStats[0]?.totalEstimated || 0,
+      totalActualHours: hoursStats[0]?.totalActual || 0,
+    };
   }
 
   /**

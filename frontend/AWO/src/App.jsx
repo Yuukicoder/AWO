@@ -5,6 +5,8 @@ import Register from './pages/Auth/Register';
 import Login from './pages/Auth/Login';
 import HomePage from './pages/Home/HomePage';
 import UserManagementPage from './pages/Home/UserManagementPage';
+import TicketListPage from './pages/ticket/TicketListPage';
+import TaskListPage from './pages/task/TaskListPage';
 import { Toaster } from 'sonner';
 
 function App() {
@@ -27,6 +29,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <UserManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/tickets" 
+            element={
+              <ProtectedRoute>
+                <TicketListPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/tasks" 
+            element={
+              <ProtectedRoute>
+                <TaskListPage />
               </ProtectedRoute>
             } 
           />

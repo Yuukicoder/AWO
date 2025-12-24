@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import AssignmentModal from "@/components/assignment/AssignmentModal";
+import { getUserWorkload, getAllUsers } from "@/services/user.service";
+// import { getTicketsByAssignee } from "@/services/ticket.service";
+// import { getTasksByAssignee } from "@/services/task.service";
+import { toast } from "sonner";
 import { 
   Search, 
   Filter, 
@@ -12,80 +17,111 @@ import {
   Edit, 
   Trash2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  UserCheck,
+  AlertTriangle,
+  TrendingUp,
+  Ticket,
+  ListTodo
 } from "lucide-react";
 
 export default function UserManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [users, setUsers] = useState([]);
+  const [workloads, setWorkloads] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [assignmentModal, setAssignmentModal] = useState({
+    isOpen: false,
+    item: null,
+    type: null
+  });
   
-  const users = [
-    {
-      id: 1,
-      name: "Minh Nguyen",
-      email: "minh.nguyen@example.com",
-      role: "Admin",
-      tasks: 40,
-      joinDate: "2023-01-15",
-      status: "Hoạt động",
-      avatar: "MN"
-    },
-    {
-      id: 2,
-      name: "Trần Lan Anh",
-      email: "lan.anh@example.com",
-      role: "Manager",
-      tasks: 40,
-      joinDate: "2023-02-20",
-      status: "Hoạt động",
-      avatar: "LA"
-    },
-    {
-      id: 3,
-      name: "Lê Hoàng",
-      email: "le.hoang@example.com",
-      role: "Member",
-      tasks: 35,
-      joinDate: "2023-03-10",
-      status: "Hoạt động",
-      avatar: "LH"
-    },
-    {
-      id: 4,
-      name: "Phạm Vân",
-      email: "pham.van@example.com",
-      role: "Member",
-      tasks: 40,
-      joinDate: "2023-04-05",
-      status: "Tạm khóa",
-      avatar: "PV"
-    },
-    {
-      id: 5,
-      name: "Vũ Thị Thu",
-      email: "vu.thu@example.com",
-      role: "Member",
-      tasks: 20,
-      joinDate: "2023-05-22",
-      status: "Hoạt động",
-      avatar: "VT"
-    }
-  ];
+  // Load users and their workloads
+  useEffect(() => {
+    loadUsersAndWorkloads();
+  }, []);
 
+  const loadUsersAndWorkloads = async () => {
+    setIsLoading(true);
+    try {
+      const usersResponse = await getAllUsers();
+      const usersData = usersResponse.data || [];
+      setUsers(usersData);
+
+      // Load workloads for all users
+      const workloadPromises = usersData.map(user => 
+        getUserWorkload(user._id)
+          .then(res => ({ userId: user._id, workload: res.data }))
+          .catch(() => ({ userId: user._id, workload: null }))
+      );
+      
+      const workloadResults = await Promise.all(workloadPromises);
+      const workloadMap = {};
+      workloadResults.forEach(result => {
+        workloadMap[result.userId] = result.workload;
+      });
+      setWorkloads(workloadMap);
+    } catch (error) {
+      toast.error('Failed to load users');
+      console.error('Error loading users:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openAssignmentModal = (user, type) => {
+    setAssignmentModal({
+      isOpen: true,
+      item: user,
+      type
+    });
+  };
+
+  const closeAssignmentModal = () => {
+    setAssignmentModal({
+      isOpen: false,
+      item: null,
+      type: null
+    });
+  };
+
+  const handleAssignmentSuccess = () => {
+    loadUsersAndWorkloads(); // Reload to update workload
+    toast.success('Assignment updated successfully');
+  };
+  
   const getRoleBadgeVariant = (role) => {
-    if (role === "Admin") return "destructive";
-    if (role === "Manager") return "default";
+    if (role === "admin") return "destructive";
+    if (role === "manager") return "default";
     return "secondary";
   };
 
-  const getStatusBadgeVariant = (status) => {
-    return status === "Hoạt động" ? "default" : "outline";
-  };
+  // const getStatusBadgeVariant = (status) => {
+  //   return status === "active" ? "default" : "outline";
+  // };
 
   const getStatusColor = (status) => {
-    return status === "Hoạt động" 
+    return status === "active" 
       ? "bg-green-500 text-white" 
       : "bg-yellow-500 text-black";
+  };
+
+  const getWorkloadColor = (level) => {
+    const colors = {
+      low: 'bg-green-100 text-green-700',
+      medium: 'bg-yellow-100 text-yellow-700',
+      high: 'bg-orange-100 text-orange-700',
+      overloaded: 'bg-red-100 text-red-700'
+    };
+    return colors[level] || colors.low;
+  };
+
+  const getWorkloadIcon = (level) => {
+    if (level === 'overloaded' || level === 'high') {
+      return <AlertTriangle className="w-3 h-3" />;
+    }
+    return <TrendingUp className="w-3 h-3" />;
   };
 
   return (
@@ -146,64 +182,127 @@ export default function UserManagementPage() {
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Tên người dùng</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Email</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Vai trò</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Năng lực (Nhiệm vụ)</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Ngày tham gia</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Workload</th>
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Tickets/Tasks</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Trạng thái</th>
                     <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user) => (
-                    <tr 
-                      key={user.id} 
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-4 px-4">
-                        <input type="checkbox" className="rounded border-gray-300" />
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-medium">
-                              {user.avatar}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium text-black">{user.name}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-gray-600">{user.email}</td>
-                      <td className="py-4 px-4">
-                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                          {user.role}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-4 text-gray-600">{user.tasks}</td>
-                      <td className="py-4 px-4 text-gray-600">{user.joinDate}</td>
-                      <td className="py-4 px-4">
-                        <Badge className={getStatusColor(user.status)}>
-                          {user.status}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 hover:bg-blue-50 hover:text-blue-600"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="8" className="py-8 text-center text-gray-500">
+                        Đang tải...
                       </td>
                     </tr>
-                  ))}
+                  ) : users.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" className="py-8 text-center text-gray-500">
+                        Không có người dùng nào
+                      </td>
+                    </tr>
+                  ) : (
+                    users.map((user) => {
+                      const workload = workloads[user._id];
+                      const workloadLevel = workload?.summary?.workloadLevel || 'low';
+                      const totalTickets = workload?.summary?.totalTickets || 0;
+                      const totalTasks = workload?.summary?.totalTasks || 0;
+                      const criticalItems = workload?.sla?.criticalItems || 0;
+                      
+                      return (
+                        <tr 
+                          key={user._id} 
+                          className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="py-4 px-4">
+                            <input type="checkbox" className="rounded border-gray-300" />
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-medium">
+                                  {user.name?.charAt(0).toUpperCase() || 'U'}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium text-black">{user.name}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-gray-600">{user.email}</td>
+                          <td className="py-4 px-4">
+                            <Badge variant={getRoleBadgeVariant(user.role)}>
+                              {user.role}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <Badge className={`${getWorkloadColor(workloadLevel)} inline-flex items-center gap-1`}>
+                                {getWorkloadIcon(workloadLevel)}
+                                {workloadLevel}
+                              </Badge>
+                              {workload && (
+                                <span className="text-xs text-gray-500">
+                                  ({workload.summary.workloadScore}/100)
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex items-center gap-1 text-sm">
+                                <Ticket className="w-4 h-4 text-blue-600" />
+                                <span className="font-medium">{totalTickets}</span>
+                              </div>
+                              <div className="flex items-center gap-1 text-sm">
+                                <ListTodo className="w-4 h-4 text-green-600" />
+                                <span className="font-medium">{totalTasks}</span>
+                              </div>
+                              {criticalItems > 0 && (
+                                <Badge variant="destructive" className="text-xs">
+                                  {criticalItems} critical
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Badge className={getStatusColor(user.status || 'active')}>
+                              {user.status === 'active' ? 'Hoạt động' : 'Tạm khóa'}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="h-8 gap-1 hover:bg-blue-50 hover:text-blue-600"
+                                onClick={() => openAssignmentModal(user, 'ticket')}
+                                title="Assign Ticket"
+                              >
+                                <Ticket className="w-4 h-4" />
+                                <span className="text-xs">Ticket</span>
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="h-8 gap-1 hover:bg-green-50 hover:text-green-600"
+                                onClick={() => openAssignmentModal(user, 'task')}
+                                title="Assign Task"
+                              >
+                                <ListTodo className="w-4 h-4" />
+                                <span className="text-xs">Task</span>
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 hover:bg-gray-100"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -243,6 +342,15 @@ export default function UserManagementPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Assignment Modal */}
+        <AssignmentModal
+          isOpen={assignmentModal.isOpen}
+          onClose={closeAssignmentModal}
+          item={assignmentModal.item}
+          type={assignmentModal.type}
+          onSuccess={handleAssignmentSuccess}
+        />
       </div>
     </div>
   );

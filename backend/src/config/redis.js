@@ -9,19 +9,21 @@ const createClient = () =>
     enableReadyCheck: true,
   });
 
-export const redisPublisher = createClient();
-export const redisSubscriber = createClient();
+// export const redisPublisher = createClient();
+// export const redisSubscriber = createClient();
+export const redisPublisher = null;
+export const redisSubscriber = null;
 
 const isActiveStatus = (status) => ["connecting", "connect", "ready"].includes(status);
 
 export const connectRedis = async () => {
   try {
     if (!isActiveStatus(redisPublisher.status)) {
-      await redisPublisher.connect();
+      // await redisPublisher.connect();
     }
 
     if (!isActiveStatus(redisSubscriber.status)) {
-      await redisSubscriber.connect();
+      // await redisSubscriber.connect();
     }
 
     console.log("✅ Redis connected");
@@ -64,10 +66,10 @@ export const disconnectRedis = async () => {
 };
 
 export const publishEvent = async (channel, payload) => {
-  try {
-    const data = typeof payload === "string" ? payload : JSON.stringify(payload);
-    await redisPublisher.publish(channel, data);
-  } catch (error) {
-    console.error(`Error publishing to channel ${channel}:`, error.message);
-  }
+  // try {
+  //   const data = typeof payload === "string" ? payload : JSON.stringify(payload);
+  //   await redisPublisher.publish(channel, data);
+  // } catch (error) {
+  //   console.error(`Error publishing to channel ${channel}:`, error.message);
+  // }
 };

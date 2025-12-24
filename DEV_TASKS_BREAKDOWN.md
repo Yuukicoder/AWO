@@ -130,7 +130,7 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 
 ---
 
-#### 🔧 **Dev B Tasks:**
+#### 🔧 **Dev B <!-- Tasks:**
 **Backend: Workload Calculator API**
 
 1. **Tạo Workload Service**
@@ -178,7 +178,7 @@ Detailed task breakdown cho **Dev A** và **Dev B** (cả 2 đều là **Fullsta
 
 ---
 
-### **📍 Day 3 (Dec 13) - Ticket & Task List & Filtering**
+### ** -->📍 Day 3 (Dec 13) - Ticket & Task List & Filtering**
 
 #### 🔧 **Dev A Tasks:**
 **Backend: Advanced Filtering cho Tickets & Tasks**

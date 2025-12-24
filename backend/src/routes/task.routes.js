@@ -6,6 +6,9 @@ const router = express.Router();
 
 router.use(authenticate);
 
+// Statistics endpoint (should be before /:id routes)
+router.get('/stats', taskController.getTaskStats.bind(taskController));
+
 router.post('/', taskController.createTask.bind(taskController));
 router.get('/', taskController.getTasks.bind(taskController));
 router.get('/:id', taskController.getTaskById.bind(taskController));

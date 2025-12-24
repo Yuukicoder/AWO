@@ -6,6 +6,72 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Clock, User, Filter, Tag } from "lucide-react";
 
+const getPriorityVariant = (priority) => {
+  if (priority.includes("Cao")) return "destructive";
+  if (priority.includes("Vừa")) return "default";
+  return "secondary";
+};
+
+const TaskCard = ({ task }) => (
+  <Card className="hover:shadow-lg transition-all cursor-pointer group border-l-4" style={{ borderLeftColor: task.priority.includes("Cao") ? "#ef4444" : task.priority.includes("Vừa") ? "#f59e0b" : "#10b981" }}>
+    <CardHeader className="pb-3">
+      <div className="flex items-center justify-between mb-2">
+        <Badge variant={getPriorityVariant(task.priority)} className="text-xs">
+          {task.priority}
+        </Badge>
+        <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-medium">
+            {task.assignee}
+          </AvatarFallback>
+        </Avatar>
+      </div>
+      <CardTitle className="text-base font-semibold group-hover:text-blue-600 transition-colors">{task.title}</CardTitle>
+      <CardDescription className="text-sm text-gray-600 leading-relaxed">{task.description}</CardDescription>
+    </CardHeader>
+    
+    {task.chart && (
+      <CardContent className="pb-3">
+        <div className="w-full h-24 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg flex items-end justify-around p-3 border border-gray-100">
+          {[40, 55, 65, 75, 85, 70, 90].map((height, i) => (
+            <div
+              key={i}
+              className="w-3 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full hover:opacity-80 transition-opacity"
+              style={{ height: `${height}%` }}
+            />
+          ))}
+        </div>
+      </CardContent>
+    )}
+
+    <CardContent className="pt-0 flex items-center justify-between">
+      <div className="flex items-center gap-2 text-gray-600 text-sm">
+        <Clock className="w-4 h-4" />
+        <span className="font-medium">{task.time}</span>
+      </div>
+      <span className="text-xs text-gray-500">{task.assigneeName}</span>
+    </CardContent>
+  </Card>
+);
+
+const Column = ({ title, count, tasks, badgeVariant = "secondary" }) => (
+  <div className="flex-1 min-w-[300px]">
+    <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-gray-200">
+      <h2 className="text-black font-bold text-lg">{title}</h2>
+      <Badge variant={badgeVariant} className="text-xs px-2.5 py-1">
+        {count} {count === 1 ? "tác vụ" : "tác vụ"}
+      </Badge>
+    </div>
+    <div className="space-y-4">
+      {tasks.map((task) => (
+        <TaskCard key={task.id} task={task} />
+      ))}
+      <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all text-sm font-medium">
+        + Thêm tác vụ mới
+      </button>
+    </div>
+  </div>
+);
+
 export default function HomePage() {
   const [tasks] = useState({
     canLam: [
@@ -88,72 +154,6 @@ export default function HomePage() {
       }
     ]
   });
-
-  const getPriorityVariant = (priority) => {
-    if (priority.includes("Cao")) return "destructive";
-    if (priority.includes("Vừa")) return "default";
-    return "secondary";
-  };
-
-  const TaskCard = ({ task }) => (
-    <Card className="hover:shadow-lg transition-all cursor-pointer group border-l-4" style={{ borderLeftColor: task.priority.includes("Cao") ? "#ef4444" : task.priority.includes("Vừa") ? "#f59e0b" : "#10b981" }}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between mb-2">
-          <Badge variant={getPriorityVariant(task.priority)} className="text-xs">
-            {task.priority}
-          </Badge>
-          <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs font-medium">
-              {task.assignee}
-            </AvatarFallback>
-          </Avatar>
-        </div>
-        <CardTitle className="text-base font-semibold group-hover:text-blue-600 transition-colors">{task.title}</CardTitle>
-        <CardDescription className="text-sm text-gray-600 leading-relaxed">{task.description}</CardDescription>
-      </CardHeader>
-      
-      {task.chart && (
-        <CardContent className="pb-3">
-          <div className="w-full h-24 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg flex items-end justify-around p-3 border border-gray-100">
-            {[40, 55, 65, 75, 85, 70, 90].map((height, i) => (
-              <div
-                key={i}
-                className="w-3 bg-gradient-to-t from-blue-500 to-purple-500 rounded-full hover:opacity-80 transition-opacity"
-                style={{ height: `${height}%` }}
-              />
-            ))}
-          </div>
-        </CardContent>
-      )}
-
-      <CardContent className="pt-0 flex items-center justify-between">
-        <div className="flex items-center gap-2 text-gray-600 text-sm">
-          <Clock className="w-4 h-4" />
-          <span className="font-medium">{task.time}</span>
-        </div>
-        <span className="text-xs text-gray-500">{task.assigneeName}</span>
-      </CardContent>
-    </Card>
-  );
-
-  const Column = ({ title, count, tasks, badgeVariant = "secondary" }) => (
-    <div className="flex-1 min-w-[300px]">
-      <div className="flex items-center gap-3 mb-4 pb-3 border-b-2 border-gray-200">
-        <h2 className="text-black font-bold text-lg">{title}</h2>
-        <Badge variant={badgeVariant} className="text-xs px-2.5 py-1">
-          {count} {count === 1 ? "tác vụ" : "tác vụ"}
-        </Badge>
-      </div>
-      <div className="space-y-4">
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
-        <button className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all text-sm font-medium">
-          + Thêm tác vụ mới
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#F4F4F4]">

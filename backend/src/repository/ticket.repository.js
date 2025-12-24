@@ -14,24 +14,26 @@ class TicketRepository {
    */
   async find(filters = {}, options = {}) {
     const {
-      page = 1,
-      limit = 10,
+      page,
+      limit,
       sortBy = 'createdAt',
       sortOrder = 'desc',
-      populate = null, // Make populate optional
+      populate = null,
       select = 'name email role',
       lean = true,
       includeTasks = false,
     } = options;
 
     const query = { isDeleted: false, ...filters };
-    const skip = (page - 1) * limit;
     const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
 
-    let queryBuilder = Ticket.find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
+    let queryBuilder = Ticket.find(query).sort(sort);
+
+    // Apply pagination only if page and limit are provided
+    if (page && limit) {
+      const skip = (page - 1) * limit;
+      queryBuilder = queryBuilder.skip(skip).limit(limit);
+    }
 
     // Only populate if populate field is provided
     if (populate) {
@@ -270,6 +272,109 @@ class TicketRepository {
       ],
     };
     return this.find(filters, options);
+  }
+
+  /**
+   * Get ticket statistics
+   */
+  async getStats(filters = {}) {
+    const now = new Date();
+    const matchQuery = { isDeleted: false, ...filters };
+
+    const [
+      totalTickets,
+      byStatus,
+      byPriority,
+      bySLA,
+      avgResolutionTime,
+    ] = await Promise.all([
+      // Total tickets
+      Ticket.countDocuments(matchQuery),
+
+      // By status
+      Ticket.aggregate([
+        { $match: matchQuery },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 },
+            overdueCount: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $lt: ['$dueDate', now] },
+                      { $nin: ['$status', ['resolved', 'closed']] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
+        },
+        { $project: { status: '$_id', count: 1, overdueCount: 1, _id: 0 } },
+      ]),
+
+      // By priority
+      Ticket.aggregate([
+        { $match: matchQuery },
+        { $group: { _id: '$priority', count: { $sum: 1 } } },
+        { $project: { priority: '$_id', count: 1, _id: 0 } },
+      ]),
+
+      // By SLA status
+      Ticket.aggregate([
+        { $match: { ...matchQuery, status: { $nin: ['resolved', 'closed'] } } },
+        {
+          $addFields: {
+            slaStatus: {
+              $cond: [
+                { $lt: ['$dueDate', now] },
+                'breached',
+                {
+                  $cond: [
+                    { $lt: ['$dueDate', new Date(now.getTime() + 4 * 60 * 60 * 1000)] },
+                    'at_risk',
+                    'on_track',
+                  ],
+                },
+              ],
+            },
+          },
+        },
+        { $group: { _id: '$slaStatus', count: { $sum: 1 } } },
+        { $project: { slaStatus: '$_id', count: 1, _id: 0 } },
+      ]),
+
+      // Average resolution time
+      Ticket.aggregate([
+        {
+          $match: {
+            ...matchQuery,
+            status: { $in: ['resolved', 'closed'] },
+            resolvedAt: { $exists: true },
+          },
+        },
+        {
+          $project: {
+            resolutionTime: {
+              $divide: [{ $subtract: ['$resolvedAt', '$createdAt'] }, 1000 * 60 * 60],
+            },
+          },
+        },
+        { $group: { _id: null, avgTime: { $avg: '$resolutionTime' } } },
+      ]),
+    ]);
+
+    return {
+      totalTickets,
+      byStatus,
+      byPriority,
+      bySLA,
+      averageResolutionTime: avgResolutionTime[0]?.avgTime || 0,
+    };
   }
 }
 
