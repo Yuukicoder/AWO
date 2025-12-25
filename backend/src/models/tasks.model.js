@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
-
+import auditLog from "./auditLog"
+import assignment from "./assignment"
+import aiMetaData from "./aiMetaData"
 const taskSchema = new mongoose.Schema(
   {
     title: {
@@ -32,6 +34,10 @@ const taskSchema = new mongoose.Schema(
       ref: 'User',
       default: null,
     },
+    assignment: {
+      type: assignment,
+      default: {},
+    },
     ticketId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Ticket',
@@ -50,6 +56,14 @@ const taskSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    ai:{
+      type: aiMetaData,
+      default: null,
+    },
+    auditLog: {
+      type: [auditLog],
+      default: [],
+    },
     isDeleted: {
       type: Boolean,
       default: false,
@@ -64,6 +78,7 @@ const taskSchema = new mongoose.Schema(
 taskSchema.index({ status: 1, priority: -1, deadline: 1 });
 taskSchema.index({ createdBy: 1 });
 taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ 'assignment.method': 1 });
 
 const Task = mongoose.model('Task', taskSchema);
 
