@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/context/AuthContext"
 
 export default function RegisterForm() {
   const [activeTab, setActiveTab] = useState("register");
+  const { register } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -34,23 +36,23 @@ export default function RegisterForm() {
     // Validate name
     const nameRegex = /^[A-Za-z\s]+$/;
     if (!nameRegex.test(formData.name)) {
-      toast.error("Name is only character A-Z or a-z");
+      toast.error("Tên chỉ bao gồm ký tự A-Z hoặc a-z");
       return;
     }
     // Validate email
     const emailRegex = /^[\w.-]+@gmail\.com$/;
     if (!emailRegex.test(formData.email)) {
-      toast.error("Wrong format email!");
+      toast.error("Email chưa đúng!");
       return;
     }
     // Validate password
     if (formData.password.length < 8) {
-      toast.error("Min length password is 8");
+      toast.error("Ký tự mật khẩu ít nhất là 8");
       return;
     }
     //  Validate confirmPassword
     if (formData.password !== formData.confirmPassword) {
-      toast.error("Password is not matching!");
+      toast.error("Mật khẩu không  trùng khớp!");
       return;
     }
 
@@ -63,12 +65,7 @@ export default function RegisterForm() {
         password: formData.password,
       };
 
-      const { data } = await axios.post(
-        "http://localhost:3000/api/auth/register",
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
-
+      const { data } = await register(payload);
       toast.success("Đăng ký thành công!");
       setFormData({ name: "", email: "", password: "", confirmPassword: "" });
 

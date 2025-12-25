@@ -1,7 +1,12 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
 import Register from './pages/Auth/Register';
 import Login from './pages/Auth/Login';
+import HomePage from './pages/Home/HomePage';
+import UserManagementPage from './pages/Home/UserManagementPage';
+import TicketListPage from './pages/ticket/TicketListPage';
+import TaskListPage from './pages/task/TaskListPage';
 import { Toaster } from 'sonner';
 
 function App() {
@@ -11,7 +16,39 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/" element={<Login />} />
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/users" 
+            element={
+              <ProtectedRoute>
+                <UserManagementPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/tickets" 
+            element={
+              <ProtectedRoute>
+                <TicketListPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/tasks" 
+            element={
+              <ProtectedRoute>
+                <TaskListPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <Toaster />
       </AuthProvider>

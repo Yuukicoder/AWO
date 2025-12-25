@@ -23,3 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+# script folder
+
+src/scripts/*
+!src/scripts/testEvents.js
