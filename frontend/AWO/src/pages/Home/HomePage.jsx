@@ -75,83 +75,14 @@ const Column = ({ title, count, tasks, badgeVariant = "secondary" }) => (
 export default function HomePage() {
   const [tasks] = useState({
     canLam: [
-      {
-        id: 1,
-        priority: "Ưu tiên Cao",
-        title: "Thiết kế giao diện trang chủ",
-        description: "Hoàn thiện wireframe và UI kit cho trang web chính.",
-        time: "8h",
-        assignee: "AN",
-        assigneeName: "Anh Đức",
-        color: "bg-red-500"
-      },
-      {
-        id: 2,
-        priority: "Ưu tiên Vừa",
-        title: "Phân tích yêu cầu API",
-        description: "Viết tài liệu kỹ thuật cho endpoint người dùng.",
-        time: "4h",
-        assignee: "MH",
-        assigneeName: "Minh Hiếu",
-        color: "bg-orange-500"
-      },
-      {
-        id: 3,
-        priority: "Ưu tiên Thấp",
-        title: "Sửa lỗi đăng nhập",
-        description: "Người dùng không thể đăng nhập khi mất kết nối.",
-        time: "2h",
-        assignee: "TL",
-        assigneeName: "Thùy Linh",
-        color: "bg-green-500"
-      }
+    
     ],
     dangTienHanh: [
-      {
-        id: 4,
-        priority: "Ưu tiên Cao",
-        title: "Cấu hình CI/CD Pipeline",
-        description: "Tự động hóa quy trình build và deploy.",
-        time: "12h",
-        assignee: "QA",
-        assigneeName: "Quang Anh",
-        color: "bg-red-500"
-      },
-      {
-        id: 5,
-        priority: "Ưu tiên Vừa",
-        title: "Viết Unit Test cho Module User",
-        description: "Đảm bảo độ bao phủ code trên 80%.",
-        time: "6h",
-        assignee: "HN",
-        assigneeName: "Hà Nhi",
-        color: "bg-orange-500"
-      }
+    
     ],
     dangDuyet: [
-      {
-        id: 6,
-        priority: "Ưu tiên Thấp",
-        title: "Cập nhật tài liệu hướng dẫn",
-        description: "Bổ sung phần hướng dẫn sử dụng mới.",
-        time: "3h",
-        assignee: "BT",
-        assigneeName: "Bảo Trân",
-        color: "bg-green-500",
-        chart: true
-      }
     ],
     hoanThanh: [
-      {
-        id: 7,
-        priority: "Ưu tiên Vừa",
-        title: "Tối ưu hóa hình ảnh trang chủ",
-        description: "Giảm kích thước file để tăng tốc độ trang.",
-        time: "5h",
-        assignee: "NP",
-        assigneeName: "Ngọc Phương",
-        color: "bg-orange-500"
-      }
     ]
   });
 
