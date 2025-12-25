@@ -3,7 +3,7 @@ import { X, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '../ui/button';
 import UserSelect from '../ui/UserSelect';
 import { assignTicket } from '../../services/ticket.service';
-import { assignTask } from '../../services/task.service';
+// import { assignTask } from '../../services/task.service';
 import { toast } from 'sonner';
 
 /**
@@ -39,7 +39,7 @@ const AssignmentModal = ({ isOpen, onClose, item, type = 'ticket', onSuccess }) 
         result = await assignTicket(item._id, selectedUser._id);
         toast.success(`Ticket ${item.number} assigned to ${selectedUser.name}`);
       } else {
-        result = await assignTask(item._id, selectedUser._id);
+        // result = await assignTask(item._id, selectedUser._id);
         toast.success(`Task assigned to ${selectedUser.name}`);
       }
 
@@ -65,7 +65,7 @@ const AssignmentModal = ({ isOpen, onClose, item, type = 'ticket', onSuccess }) 
         result = await assignTicket(item._id, null);
         toast.success(`Ticket ${item.number} unassigned`);
       } else {
-        result = await assignTask(item._id, null);
+        // result = await assignTask(item._id, null);
         toast.success('Task unassigned');
       }
 
