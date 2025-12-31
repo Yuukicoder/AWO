@@ -5,7 +5,7 @@ export function validateIngestInput(body) {
     return "Request body is required";
   }
 
-  const { source, text } = body;
+  const { source, rawText } = body;
 
   // Validate source
   if (!source) {
@@ -16,21 +16,21 @@ export function validateIngestInput(body) {
     return "source is invalid";
   }
 
-  // Validate text
-  if (!text) {
-    return "text is required";
+  // Validate rawText
+  if (!rawText) {
+    return "rawText is required";
   }
 
-  if (typeof text !== "string") {
-    return "text must be a string";
+  if (typeof rawText !== "string") {
+    return "rawText must be a string";
   }
 
-  if (text.length < 10) {
-    return "text is too short (min 10 chars)";
+  if (rawText.length < 10) {
+    return "rawText is too short (min 10 chars)";
   }
 
-  if (text.length > 2000) {
-    return "text is too long (max 2000 chars)";
+  if (rawText.length > 2000) {
+    return "rawText is too long (max 2000 chars)";
   }
 
   return null; // PASS

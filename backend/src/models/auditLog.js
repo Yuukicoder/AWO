@@ -9,7 +9,6 @@ const auditLogSchema = new mongoose.Schema(
        at : {type: Date, required: true}
 
    }, 
-   { _id: false},
-
+   { _id: false }
 ) 
 export default auditLogSchema;
