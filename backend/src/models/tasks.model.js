@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import auditLog from "./auditLog"
-import assignment from "./assignment"
-import aiMetaData from "./aiMetaData"
+import auditLogSchema from "./auditLog.js"
+import assignmentSchema from "./assignment.js"
+import aiMetaDataSchema from "./aiMetaData.js"
 const taskSchema = new mongoose.Schema(
   {
     title: {
@@ -35,7 +35,7 @@ const taskSchema = new mongoose.Schema(
       default: null,
     },
     assignment: {
-      type: assignment,
+      type: assignmentSchema,
       default: {},
     },
     ticketId: {
@@ -57,11 +57,11 @@ const taskSchema = new mongoose.Schema(
       default: 0,
     },
     ai:{
-      type: aiMetaData,
+      type: aiMetaDataSchema,
       default: null,
     },
     auditLog: {
-      type: [auditLog],
+      type: [auditLogSchema],
       default: [],
     },
     isDeleted: {
