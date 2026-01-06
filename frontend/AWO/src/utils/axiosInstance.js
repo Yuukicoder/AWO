@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: import.meta.env.VITE_SERVER_API || 'http://localhost:3002/api',
+    baseURL: import.meta.env.VITE_SERVER_API || 'http://localhost:3000/api',
     withCredentials: true, // Quan trọng: cho phép gửi cookies
     headers: {
         'Content-Type': 'application/json'
