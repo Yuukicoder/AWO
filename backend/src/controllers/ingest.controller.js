@@ -57,18 +57,30 @@ export async function ingestController(req, res) {
         });
     }
 
-    return res.status(202).json({
+    // Reload result để lấy ticketId sau khi AI xử lý xong
+    const updatedResult = await result.populate('ticketId');
+
+    return res.status(201).json({
       success: true,
-      message: "Ingest payload received and queued for AI triage",
+      message: "Ingest processed successfully and ticket created",
       data: {
         ingestId: result._id,
         source: result.source,
         status: result.status,
-        receivedAt: result.receivedAt
+        receivedAt: result.receivedAt,
+        processedAt: result.processedAt,
+        ticket: updatedResult.ticketId ? {
+          id: updatedResult.ticketId._id,
+          number: updatedResult.ticketId.number,
+          title: updatedResult.ticketId.title,
+          priority: updatedResult.ticketId.priority,
+          category: updatedResult.ticketId.category,
+          aiSuggestion: updatedResult.ticketId.aiAnalysis?.suggestedAssignee
+        } : null
       }
     });
   } catch (err) {
-    console.error("Error processing ingest:", err);
+    console.error("❌ Error processing ingest:", err);
     return res.status(500).json({
       success: false,
       error: "Internal server error",
@@ -111,11 +123,11 @@ export async function slackWebhookController(req, res) {
       }
     };
 
-    const result = await processWebhookIngest(payload);
+    await processWebhookIngest(payload);
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("Error processing Slack webhook:", err);
+    console.error("❌ Error processing Slack webhook:", err);
     return res.status(500).json({ ok: false, error: "Internal server error" });
   }
 }
@@ -138,13 +150,14 @@ export async function formWebhookController(req, res) {
 
     const result = await processWebhookIngest(payload);
 
-    return res.status(202).json({
+    return res.status(201).json({
       success: true,
-      message: "Form submission received",
-      ingestId: result._id
+      message: "Form submission received and processed",
+      ingestId: result._id,
+      ticketNumber: result.ticketId?.number
     });
   } catch (err) {
-    console.error("Error processing form webhook:", err);
+    console.error("❌ Error processing form webhook:", err);
     return res.status(500).json({
       success: false,
       error: "Internal server error"

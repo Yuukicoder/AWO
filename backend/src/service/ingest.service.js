@@ -1,5 +1,7 @@
 import IngestPayload from '../models/IngetPayload.js';
-import { publishEvent } from '../config/redis.js';
+import AI_TriangleService from '../modules/AI_Triagle/AI_Triangle.service.js';
+import Ticket from '../models/tickets.model.js';
+import User from '../models/users.model.js';
 
 /**
  * Process email ingest
@@ -31,10 +33,10 @@ export async function processEmailIngest(input) {
 
   // Save to database
   await ingestPayload.save();
-  console.log(`Email ingest saved: ${ingestPayload._id}`);
+  console.log(`📧 Email ingest saved: ${ingestPayload._id}`);
 
-  // Trigger AI triage job via Redis pub/sub
-  await triggerAITriage(ingestPayload);
+  // Trigger AI triage immediately
+  await processAITriage(ingestPayload);
 
   return ingestPayload;
 }
@@ -59,10 +61,10 @@ export async function processWebhookIngest(input) {
 
   // Save to database
   await ingestPayload.save();
-  console.log(`Webhook ingest saved: ${ingestPayload._id}`);
+  console.log(`🔗 Webhook ingest saved: ${ingestPayload._id}`);
 
-  // Trigger AI triage job
-  await triggerAITriage(ingestPayload);
+  // Trigger AI triage immediately
+  await processAITriage(ingestPayload);
 
   return ingestPayload;
 }
@@ -93,48 +95,120 @@ export async function processManualIngest(input) {
 
   // Save to database
   await ingestPayload.save();
-  console.log(`Manual ingest saved: ${ingestPayload._id}`);
+  console.log(`✍️ Manual ingest saved: ${ingestPayload._id}`);
 
-  // Trigger AI triage job
-  await triggerAITriage(ingestPayload);
+  // Trigger AI triage immediately
+  await processAITriage(ingestPayload);
 
   return ingestPayload;
 }
 
 /**
- * Trigger AI triage job
- * Publishes event to Redis for AI processing
+ * Process AI Triage - CORE LOGIC
+ * Analyzes ingest payload and creates ticket with AI suggestions
  */
-async function triggerAITriage(ingestPayload) {
+async function processAITriage(ingestPayload) {
   try {
-    const triagePayload = {
-      ingestId: ingestPayload._id.toString(),
-      source: ingestPayload.source,
-      rawText: ingestPayload.rawText,
-      sourceMeta: ingestPayload.sourceMeta,
-      receivedAt: ingestPayload.receivedAt
-    };
-
-    // Publish to Redis channel for AI workers to pick up
-    await publishEvent('ai:triage:queue', triagePayload);
-    
-    console.log(`AI triage triggered for ingest: ${ingestPayload._id}`);
+    console.log(`🤖 Starting AI analysis for ingest: ${ingestPayload._id}`);
 
     // Update status to processing
     ingestPayload.status = 'processing';
-    ingestPayload.processedAt = new Date();
     await ingestPayload.save();
 
-  } catch (error) {
-    console.error('Error triggering AI triage:', error);
+    // Step 1: Call Gemini AI to analyze content
+    const aiResult = await AI_TriangleService.triageWithGemini(
+      ingestPayload.rawText,
+      {
+        source: ingestPayload.source,
+        from: ingestPayload.sourceMeta?.emailFrom || ingestPayload.sourceMeta?.submittedBy,
+        subject: ingestPayload.sourceMeta?.subject
+      }
+    );
+
+    if (!aiResult.success) {
+      console.warn('⚠️ AI analysis failed, using fallback data');
+    }
+
+    // Step 2: Get active users for assignment suggestion
+    const users = await User.find({ is_active: true }).lean();
     
-    // Update status to failed
+    // Step 3: Suggest assignee based on AI analysis
+    const assignmentSuggestion = await AI_TriangleService.suggestAssigneee(
+      aiResult.data,
+      users
+    );
+
+    // Step 4: Generate unique ticket number
+    const ticketNumber = await generateTicketNumber();
+
+    // Step 5: Create ticket from AI analysis
+    const ticket = new Ticket({
+      number: ticketNumber,
+      title: aiResult.data.title,
+      description: aiResult.data.description,
+      priority: aiResult.data.priority,
+      status: 'open',
+      category: aiResult.data.category,
+      tags: aiResult.data.labels || [],
+      estimatedResolutionTime: aiResult.data.estimatedEffort || 0,
+      
+      // AI Analysis Metadata
+      aiAnalysis: {
+        processed: aiResult.success,
+        confidence: aiResult.data.confidenceScore || 0,
+        modelVersion: aiResult.data.modelVersion,
+        suggestedAssignee: assignmentSuggestion.suggestedAssignee,
+        alternatives: assignmentSuggestion.alternativeAssignees || [],
+        rawResponse: aiResult.data.rawResponse,
+        isFallback: aiResult.data.isFallback || false
+      },
+
+      // Source tracking
+      source: ingestPayload.source,
+      sourceMeta: ingestPayload.rawData,
+      ingestId: ingestPayload._id
+    });
+
+    await ticket.save();
+    console.log(`✅ Ticket created: ${ticket.number}`);
+
+    // Step 6: Update ingest status to completed
+    ingestPayload.status = 'completed';
+    ingestPayload.processedAt = new Date();
+    ingestPayload.ticketId = ticket._id;
+    await ingestPayload.save();
+
+    console.log(`✅ AI Triage completed for ingest: ${ingestPayload._id} → Ticket: ${ticket.number}`);
+
+    return {
+      success: true,
+      ingestId: ingestPayload._id,
+      ticketId: ticket._id,
+      ticketNumber: ticket.number,
+      aiAnalysis: aiResult.data,
+      assignment: assignmentSuggestion
+    };
+
+  } catch (error) {
+    console.error(`❌ AI Triage failed for ingest ${ingestPayload._id}:`, error);
+
+    // Update ingest status to failed
     ingestPayload.status = 'failed';
     ingestPayload.errorMessage = error.message;
     await ingestPayload.save();
-    
+
     throw error;
   }
+}
+
+/**
+ * Generate unique ticket number
+ * Format: TICKET-000001, TICKET-000002, etc.
+ */
+async function generateTicketNumber() {
+  const count = await Ticket.countDocuments();
+  const number = `TICKET-${String(count + 1).padStart(6, '0')}`;
+  return number;
 }
 
 /**
@@ -162,6 +236,10 @@ export async function updateIngestStatus(ingestId, status, metadata = {}) {
   
   if (status === 'failed' && metadata.error) {
     ingest.errorMessage = metadata.error;
+  }
+
+  if (metadata.ticketId) {
+    ingest.ticketId = metadata.ticketId;
   }
 
   await ingest.save();

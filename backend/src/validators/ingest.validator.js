@@ -44,10 +44,16 @@ export function validateIngestInput(body) {
  * Validate email payload
  */
 export function validateEmailPayload(body) {
-  const basicError = validateIngestInput(body);
-  if (basicError) return basicError;
+  if (!body) {
+    return "Request body is required";
+  }
 
-  const { from, subject, body: emailBody } = body;
+  const { source, from, subject, body: emailBody } = body;
+
+  // Validate source
+  if (source && source !== 'email') {
+    return "source must be 'email'";
+  }
 
   if (!from) {
     return "from email address is required";
@@ -65,6 +71,11 @@ export function validateEmailPayload(body) {
 
   if (!emailBody || emailBody.trim().length === 0) {
     return "email body is required";
+  }
+
+  // Validate body length
+  if (emailBody.length > 10000) {
+    return "email body is too long (max 10000 chars)";
   }
 
   return null;
