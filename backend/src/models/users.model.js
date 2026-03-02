@@ -54,7 +54,6 @@ const userSchema = new mongoose.Schema(
 // });
 
 // Indexes for query optimization
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ isActive: 1, isAvailable: 1 });
 userSchema.index({ role: 1 });
 

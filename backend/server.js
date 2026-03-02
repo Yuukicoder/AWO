@@ -9,6 +9,7 @@ import taskRoutes from './src/routes/task.routes.js';
 import ticketRoutes from './src/routes/ticket.routes.js';
 import ingestRoutes from './src/routes/ingest.route.js';
 import managerRoutes from './src/routes/manager.routes.js';
+import emailWebhookRoutes from './src/routes/emailWebhook.routes.js';
 import { connectRedis, disconnectRedis } from './src/config/redis.js';
 import { initSocket } from './src/config/socket.js';
 
@@ -18,8 +19,16 @@ const app = express();
 const httpServer = http.createServer(app);
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(o => o.trim()) : [])
+];
 app.use(cors({
-  origin: process.env.FRONTEND_URL && 'http://localhost:5174', // Frontend URL
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS blocked: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -39,6 +48,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/ingest', ingestRoutes);
 app.use('/api/v1/manager', managerRoutes);
+app.use('/api/webhooks/email', emailWebhookRoutes);
 
 // Connect DB, Redis và start server
 const PORT = process.env.PORT || 3002;

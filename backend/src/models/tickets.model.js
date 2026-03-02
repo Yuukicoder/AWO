@@ -6,8 +6,7 @@ const ticketSchema = new mongoose.Schema({
   number: {
     type: String,
     unique: true,
-    required: true,
-    index: true
+    required: true
   },
   title: {
     type: String,
@@ -137,22 +136,16 @@ const ticketSchema = new mongoose.Schema({
 // Index for common queries
 ticketSchema.index({ status: 1, priority: -1, createdAt: -1 });
 ticketSchema.index({ assignedTo: 1, status: 1 });
-ticketSchema.index({ number: 1 }, { unique: true });
 
 // Auto-generate ticket number before save
-ticketSchema.pre('save', async function (next) {
-  if (!this.isNew) return next();
-  try {
-    const counter = await Counter.findByIdAndUpdate(
-      'ticket',
-      { $inc: { seq: 1 } },
-      { new: true, upsert: true }
-    );
-    this.number = `AWO-${String(counter.seq).padStart(4, '0')}`;
-    next();
-  } catch (err) {
-    next(err);
-  }
+ticketSchema.pre('save', async function () {
+  if (!this.isNew) return;
+  const counter = await Counter.findByIdAndUpdate(
+    'ticket',
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+  this.number = `AWO-${String(counter.seq).padStart(4, '0')}`;
 });
 
 // Virtual for ticket age

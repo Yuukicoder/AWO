@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import Navbar from "@/components/layout/Navbar";
+import Navbar from "@/components/layout/NavBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import AssignmentModal from "@/components/assignment/AssignmentModal";
 import { getUserWorkload, getAllUsers } from "@/services/user.service";
@@ -12,6 +12,7 @@ import { getUserWorkload, getAllUsers } from "@/services/user.service";
 import { toast } from "sonner";
 import { 
   Search, 
+
   Filter, 
   UserPlus, 
   Edit, 
@@ -48,7 +49,7 @@ export default function UserManagementPage() {
       const usersResponse = await getAllUsers();
       const usersData = usersResponse.data || [];
       setUsers(usersData);
-
+      console.log('Loaded users:', usersData);
       // Load workloads for all users
       const workloadPromises = usersData.map(user => 
         getUserWorkload(user._id)
